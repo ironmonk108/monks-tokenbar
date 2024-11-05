@@ -418,7 +418,11 @@ export class TokenBar extends Application {
         let defaultColor = $('#tokenbar .token .token-stat').css('color') || '#f0f0f0';
 
         for (let stat of viewstats) {
-            let value = TokenBar.processStat(stat.stat, entry.actor.system) || TokenBar.processStat(stat.stat, entry.token);
+            const data = {
+                ...entry.actor.system,
+                flags: { ...entry.actor.flags }
+            }
+            let value = TokenBar.processStat(stat.stat, data) || TokenBar.processStat(stat.stat, entry.token);
 
             if (entry.stats[stat.stat] == undefined) {
                 entry.stats[stat.stat] = { icon: stat.icon, color: stat.color || defaultColor, value: value, hidden: (!setting("show-undefined") && value == undefined) };
