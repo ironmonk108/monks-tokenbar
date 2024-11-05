@@ -768,21 +768,31 @@ export class SavingThrow {
 
                 if (update.roll) {
                     let tooltip = '';
+                    let actualRoll = null;
+                    let successField = 'total';
+                    
                     if (update.roll instanceof Roll) {
-                        msgtoken.roll = update.roll.toJSON();
+                        actualRoll = update.roll;
+                    } else if(update.roll.roll && update.roll.roll.constructor.name === 'FBLRoll') {
+                        actualRoll = update.roll.roll;
+                        successField = 'successCount'
+                    }
+
+                    if (actualRoll !== null) {
+                        msgtoken.roll = actualRoll.toJSON();
                         if (msgtoken.roll.terms.length)
                             msgtoken.roll.terms = foundry.utils.duplicate(msgtoken.roll.terms);
                         for (let i = 0; i < msgtoken.roll.terms.length; i++) {
                             if (msgtoken.roll.terms[i] instanceof foundry.dice.terms.RollTerm)
                                 msgtoken.roll.terms[i] = msgtoken.roll.terms[i].toJSON();
                         }
-                        msgtoken.total = update.roll.total;
+                        msgtoken.total = actualRoll[successField];
                         msgtoken.reveal = update.reveal || reveal;
                         msgtoken.request = update.request;
-                        tooltip = await update.roll.getTooltip();
+                        tooltip = await actualRoll.getTooltip();
 
                         Hooks.callAll('tokenBarUpdateRoll', this, message, update.id, msgtoken.roll);
-                    }
+                    } 
 
                     if ($.isNumeric(dc))
                         Object.assign(msgtoken, MonksTokenBar.system.rollSuccess(msgtoken.roll, dc, msgtoken.actorid, msgtoken.request || requests[0]));
