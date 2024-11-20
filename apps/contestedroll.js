@@ -50,10 +50,32 @@ export class ContestedRollApp extends Application {
     }
 
     getData(options) {
+        let dispOptions = this.requestoptions;
+        try {
+            if (this.entries.length > 0) {
+                let dynamic = MonksTokenBar.system.dynamicRequest(this.entries);
+
+                if (dynamic) {
+                    let dispDyn = dynamic.map(de => {
+                        return Object.assign({}, de, { groups: Object.entries(de.groups).reduce((a, [k, v]) => ({ ...a, [k]: v.label || v }), {}) });
+                    });
+
+                    dispOptions = [...this.requestoptions, ...dispDyn];
+                    this.requestoptions = this.requestoptions.concat(dynamic);
+                }
+            }
+        } catch {}
+
+        let entries = this.entries.map(e => {
+            let img = e.token?.document?.texture?.src || e.token?.img;
+
+            return foundry.utils.mergeObject({ img }, e);
+        });
+
         return {
-            entries: this.entries,
+            entries: entries,
             rollmode: this.rollmode,
-            options: this.requestoptions,
+            options: dispOptions,
             hidenpcname: this.hidenpcname,
             flavor: this.flavor,
         };
