@@ -28,7 +28,7 @@ export class TokenBar extends Application {
             if ((game.user.isGM || setting("allow-player")) && foundry.utils.getProperty(data, "flags.monks-tokenbar.include") != undefined) {
                 this.refresh();
             } else if (((game.user.isGM || setting("allow-player")) && !setting("disable-tokenbar"))) {
-                let entry = this.entries.find(t => t.token?.id == document.id);
+                let entry = this.entries.find(t => t.token?.id == document?.id);
                 if (entry)
                     this.updateEntry(entry, options.ignoreRefresh !== true)
             }
@@ -36,7 +36,7 @@ export class TokenBar extends Application {
 
         Hooks.on('updateItem', (item, data, options) => {
             if (((game.user.isGM || setting("allow-player")) && !setting("disable-tokenbar"))) {
-                let entry = this.entries.find(t => t.actor?.id == item.actor.id);
+                let entry = this.entries.find(t => t.actor?.id == item?.actor?.id);
                 if (entry != undefined) {
                     this.updateEntry(entry);
                 }
@@ -45,7 +45,7 @@ export class TokenBar extends Application {
 
         Hooks.on('updateOwnedItem', (actor, item, data) => {
             if (((game.user.isGM || setting("allow-player")) && !setting("disable-tokenbar"))) {
-                let entry = this.entries.find(t => t.actor?.id == actor.id);
+                let entry = this.entries.find(t => t.actor?.id == actor?.id);
                 if (entry != undefined) {
                     let that = this;
                     setTimeout(function () { that.updateEntry(entry); }, 100); //delay slightly so the PF2E condition can be rendered properly.
@@ -55,7 +55,7 @@ export class TokenBar extends Application {
 
         Hooks.on('updateActor', (actor, data) => {
             if (((game.user.isGM || setting("allow-player")) && !setting("disable-tokenbar"))) {
-                let entry = this.entries.find(t => t.actor?.id == actor.id);
+                let entry = this.entries.find(t => t.actor?.id == actor?.id);
                 if (data.ownership != undefined) {
                     this.refresh();
                 } else if (entry != undefined) {
@@ -68,7 +68,7 @@ export class TokenBar extends Application {
             if (((game.user.isGM || setting("allow-player")) && !setting("disable-tokenbar"))) {
                 let actor = effect.parent;
                 if (actor instanceof Actor) {
-                    let entry = this.entries.find(t => t.actor?.id == actor.id);
+                    let entry = this.entries.find(t => t.actor?.id == actor?.id);
                     if (entry != undefined) {
                         this.updateEntry(entry)
                     } else if (actor.ownership != undefined) {
@@ -82,7 +82,7 @@ export class TokenBar extends Application {
             if (((game.user.isGM || setting("allow-player")) && !setting("disable-tokenbar"))) {
                 if (item.type == 'effect') {
                     if (item.actor) {
-                        let entry = this.entries.find(t => t.actor?.id == item.actor.id);
+                        let entry = this.entries.find(t => t.actor?.id == item?.actor?.id);
                         if (entry != undefined) {
                             this.updateEntry(entry)
                         }
@@ -94,7 +94,7 @@ export class TokenBar extends Application {
         Hooks.on("deleteItem", (item) => {
             if (((game.user.isGM || setting("allow-player")) && !setting("disable-tokenbar"))) {
                 if (item.type == 'effect') {
-                    let entry = this.entries.find(t => t.actor?.id == item.actor.id);
+                    let entry = this.entries.find(t => t.actor?.id == item?.actor?.id);
                     if (entry != undefined) {
                         this.updateEntry(entry)
                     }
