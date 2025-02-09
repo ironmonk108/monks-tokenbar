@@ -36,7 +36,7 @@ export class TokenBar extends Application {
 
         Hooks.on('updateItem', (item, data, options) => {
             if (((game.user.isGM || setting("allow-player")) && !setting("disable-tokenbar"))) {
-                let entry = this.entries.find(t => t.actor?.id == item.actor.id);
+                let entry = this.entries.find(t => t.actor?.id == item?.actor?.id);
                 if (entry != undefined) {
                     this.updateEntry(entry);
                 }
@@ -82,7 +82,7 @@ export class TokenBar extends Application {
             if (((game.user.isGM || setting("allow-player")) && !setting("disable-tokenbar"))) {
                 if (item.type == 'effect') {
                     if (item.actor) {
-                        let entry = this.entries.find(t => t.actor?.id == item.actor.id);
+                        let entry = this.entries.find(t => t.actor?.id == item?.actor?.id);
                         if (entry != undefined) {
                             this.updateEntry(entry)
                         }
@@ -94,7 +94,7 @@ export class TokenBar extends Application {
         Hooks.on("deleteItem", (item) => {
             if (((game.user.isGM || setting("allow-player")) && !setting("disable-tokenbar"))) {
                 if (item.type == 'effect') {
-                    let entry = this.entries.find(t => t.actor?.id == item.actor.id);
+                    let entry = this.entries.find(t => t.actor?.id == item?.actor?.id);
                     if (entry != undefined) {
                         this.updateEntry(entry)
                     }
