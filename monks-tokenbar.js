@@ -113,6 +113,17 @@ export class MonksTokenBar {
         return str;
     }
 
+    /**
+     * @param {(Roll|Roll[]|Object)} roll 
+     */
+    static intoRoll(roll) {
+        if (roll instanceof Roll) {
+            return roll;
+        }
+
+        return Roll.fromData(roll);
+    }
+
     static init() {
         log("initializing");
         // element statics
@@ -481,10 +492,7 @@ export class MonksTokenBar {
                     let message = game.messages.get(data.msgid);
                     const revealDice = MonksTokenBar.revealDice();
                     for (let response of data.response) {
-                        if (response.roll) {
-                            let r = Roll.fromData(response.roll);
-                            response.roll = r;
-                        }
+                        response.roll = MonksTokenBar.intoRoll(response.roll);
                     }
                     if (data.type == 'savingthrow')
                         SavingThrow.updateMessage(data.response, message, revealDice);
