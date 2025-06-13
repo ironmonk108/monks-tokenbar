@@ -422,6 +422,7 @@ export class ContestedRoll {
 
                 if (update.roll) {
                     let tooltip = '';
+                    update.roll = MonksTokenBar.intoRoll(update.roll);
                     if (update.roll instanceof Roll) {
                         msgtoken.roll = update.roll.toJSON();
                         if (msgtoken.roll.terms.length)
@@ -576,7 +577,7 @@ export class ContestedRoll {
                 msgtoken.tempreveal = true;
                 if (!msgtoken.roll && update.roll) {
                     //if the roll was not set, then set it
-                    msgtoken.roll = Roll.fromData(update.roll);
+                    msgtoken.roll = MonksTokenBar.intoRoll(update.roll);
                 }
                 flags["token" + update.id] = msgtoken;
                 log("Finish Rolling", msgtoken);

@@ -165,51 +165,91 @@ export class DnD5eRolls extends BaseRolls {
 
     roll({ id, actor, request, rollMode, fastForward = false, message }, callback, e) {
         let rollfn = null;
-        let options = { rollMode: rollMode, fastForward: fastForward, chatMessage: false, fromMars5eChatCard: true, event: e, advantage: e.advantage, disadvantage: e.disadvantage };
-        let context = actor;
-        let sysRequest = request.key;
-        if (request.type == 'ability') {
-            rollfn = (actor.getFunction ? actor.getFunction("rollAbilityTest") : actor.rollAbilityTest);
-        }
-        else if (request.type == 'save') {
-            rollfn = actor.rollAbilitySave;
-        }
-        else if (request.type == 'skill') {
-            rollfn = actor.rollSkill;
-        } else if (request.type == 'tool') {
-            let item = actor.items.find(i => { return i.getFlag("core", "sourceId") == request.key || MonksTokenBar.slugify(i.name) == request.key; });
-            if (item != undefined) {
-                context = item;
-                sysRequest = options;
-                rollfn = item.rollToolCheck;
-            } else
-                return { id: id, error: true, msg: i18n("MonksTokenBar.ActorNoTool") };
-        } else {
-            if (request.key == 'death') {
-                rollfn = actor.rollDeathSave;
-                sysRequest = options;
-            }
-            else if (request.key == 'init') {
-                rollfn = actor.rollInitiative;
-                options.messageOptions = { flags: { 'monks-tokenbar': { ignore: true, msgid: message.id, tokenid: id }} };
-                sysRequest = { createCombatants: false, rerollInitiative: true, initiativeOptions: options };
-            }
+        const config = {
+            event: e,
+            advantage: e.advantage,
+            disadvantage: e.disadvantage,
+        };
+        const messageConfig = {
+            create: false,
+            rollMode,
+        };
+        // Actually, it's dialog options in case of skill/ability checks, but roll options for initiative roll
+        const options = {
+            configure: !Boolean(fastForward),
+        };
+
+        switch (request.type) {
+            case 'ability':
+                rollfn = actor.rollAbilityCheck.bind(actor);
+                config.type = 'check';
+                config.ability = request.key;
+                break;
+            case 'save':
+                rollfn = actor.rollAbilityCheck.bind(actor);
+                config.type = 'save';
+                config.ability = request.key;
+                break;
+            case 'skill':
+                rollfn = actor.rollSkill.bind(actor);
+                config.skill = request.key;
+                break;
+            case 'tool':
+                const item = actor.items.find(i => i.getFlag("core", "sourceId") === request.key
+                    || MonksTokenBar.slugify(i.name) === request.key
+                );
+
+                if (item === undefined) {
+                    return { id: id, error: true, msg: i18n("MonksTokenBar.ActorNoTool") };
+                }
+
+                rollfn = item.rollToolCheck.bind(item);
+                break;
+            case 'misc':
+                if (request.key !== 'death') {
+                    break;
+                }
+                // fallthrough
+            case 'death':
+                rollfn = actor.rollDeathSave.bind(actor);
+                break;
+            case 'init':
+                rollfn = actor.rollInitiative.bind(actor);
+                options.messageOptions = {
+                    createCombatants: false,
+                    rerollInitiative: true,
+                    flags: {
+                        'monks-tokenbar': {
+                            ignore: true,
+                            msgid: message.id,
+                            tokenid: id,
+                        },
+                    },
+                }
+                break;
         }
 
-        if (rollfn != undefined) {
-            try {
-                return rollfn.call(context, sysRequest, options).then((roll) => {
+        if (rollfn === null) {
+            return { id: id, error: true, msg: i18n("MonksTokenBar.ActorNoRollFunction") };
+        }
+
+        try {
+            return rollfn(config, options, messageConfig)
+                .then((rolls) => {
+                    const roll = Array.isArray(rolls) && rolls.length
+                        ? rolls[0]
+                        : rolls;
+
                     return callback(roll);
-                }).catch((e) => {
+                })
+                .catch((e) => {
                     console.error(e);
                     return { id: id, error: true, msg: i18n("MonksTokenBar.UnknownError") }
                 });
-            } catch (e) {
-                console.error(e);
-                return { id: id, error: true, msg: i18n("MonksTokenBar.UnknownError") }
-            }
-        } else
-            return { id: id, error: true, msg: i18n("MonksTokenBar.ActorNoRollFunction") };
+        } catch (e) {
+            console.error(e);
+            return { id: id, error: true, msg: i18n("MonksTokenBar.UnknownError") }
+        }
     }
 
     async assignXP(msgactor) {

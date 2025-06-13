@@ -167,6 +167,10 @@ body #tokenbar-window:first-child{
     pointer-events: none;
 }
 
+#token-action-bar .token-list .token {
+    margin: 0;
+}
+
 #tokenbar .token-list {
     flex: 1 1 auto;
     height: 100%;
@@ -521,6 +525,8 @@ body #tokenbar-window:first-child{
     margin: 0;
     white-space: nowrap;
     overflow-x: hidden;
+    font-family: "Modesto Condensed", "Palatino Linotype", serif;
+    font-size: 1.2rem;
 }
 
 .monks-tokenbar .sheet .items-list .item-name h4 .request-name{
