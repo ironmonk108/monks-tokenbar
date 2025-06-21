@@ -8,7 +8,7 @@ export class Tormenta20Rolls extends BaseRolls {
 
         this._requestoptions = [
             { id: "ability", text: i18n("MonksTokenBar.Ability"), groups: this.config.atributos },
-            { id: "save", text: i18n("MonksTokenBar.SavingThrow"), groups: this.config.resistencias },
+            { id: "save", text: i18n("T20.ActionSave"), groups: this.config.resistencias },
             { id: "skill", text: i18n("MonksTokenBar.Skill"), groups: this.config.pericias }
         ].concat(this._requestoptions);
     }
