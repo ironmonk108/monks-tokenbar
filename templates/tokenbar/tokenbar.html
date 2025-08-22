@@ -1,22 +1,17 @@
-<div id="tokenbar" class="flexrow {{cssClass}}" movement="{{movement}}" style="{{pos}}">
-    <div id="tokenbar-controls" class="bar-controls flexrow">
-        <div id="tokenbar-move-handle">
-            <div class="toggle-collapse">
-                <i class="fas {{collapseIcon}}"></i>
-            </div>
+<div>
+    <section class="button-group">
+        {{#each buttons as | buttonGroup | }}
+        <div class="flexcol tokenbar-buttons">
+            {{#each buttonGroup as | button i | }}
+            <button id="{{button.id}}" title="{{localize button.title}}" class="inline-control icon fa-solid {{button.icon}} {{#if button.disabled}}disabled{{/if}} {{#if button.hidden}}hidden{{/if}} {{#if button.active}}active{{/if}}" data-action="buttonClicked">
+            </button>
+            {{/each}}
         </div>
-        {{#each buttons}}
-            <div class="flexcol tokenbar-buttons">
-                {{#each this}}
-                <div id="{{this.id}}" title="{{localize this.title}}" class="{{#if this.disabled}}disabled{{/if}} {{#if this.hidden}}hidden{{/if}} {{#if this.active}}active{{/if}}">
-                    <i class="fas {{this.icon}}"></i>
-                </div>
-                {{/each}}
-            </div>
         {{/each}}
-    </div>
+    </section>
     <nav id="token-action-bar" class="flexrow{{#if collapsed}} collapsed{{/if}}">
-        <ol class="flexrow token-list">{{#each entries}}
+        <ol class="flexrow token-list">
+            {{#each entries}}
             <li class="token flexcol {{this.cssClass}}" {{#if this.token}} data-token-id="{{this.token.id}}" {{/if}} {{#if this.actor}} data-actor-id="{{this.actor.id}}" {{/if}} movement="{{this.movement}}">
                 <div class="token-stats flexcol">
                     {{#each this.stats}}
@@ -44,6 +39,7 @@
                     {{/if}}
                 </div>
             </li>
-            {{/each}}</ol>
+            {{/each}}
+        </ol>
     </nav>
 </div>

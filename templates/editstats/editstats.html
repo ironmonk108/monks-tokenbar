@@ -1,0 +1,36 @@
+<div class="monks-tokenbar">
+    <section class="stats-section">
+        <header class="items-header">
+            <div class="icon">Icon</div>
+            <div class="name">Name</div>
+            <div class="color">Colour</div>
+            <div class="controls">
+                <button type="button" class="inline-control icon fa-regular fa-square-plus" data-action="addStat" data-tooltip="Add Stat"></button>
+            </div>
+        </header>
+
+        <ol class="stat-list">
+            {{#each stats as |stat i| }}
+            <li class="stat" data-id="{{stat.id}}" draggable="true">
+                <div class="icon">
+                    <input type="hidden" name="icon" value="{{stat.icon}}" />
+                    <button type="button" class="inline-control icon fa-solid {{stat.icon}}" data-action="changeIcon"></button>
+                </div>
+
+                <div class="name">
+                    <input type="text" name="name" class="typeahead" autocomplete="off" value="{{stat.stat}}" />
+                </div>
+
+                <div class="color">
+                    <color-picker name="color" value="{{ stat.color }}">
+                </div>
+
+                <div class="controls">
+                    <button type="button" class="inline-control icon fas fa-trash" data-action="removeStat"></button>
+                </div>
+            </li>
+            {{/each}}
+        </ol>
+    </section>
+    {{#if hasObject}}<p class="notes" style="flex: 0;">This is for custom stats you can edit the default stats in the settings for this module</p>{{/if}}
+</div>

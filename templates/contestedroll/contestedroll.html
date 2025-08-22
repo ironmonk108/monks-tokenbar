@@ -1,0 +1,77 @@
+<div class="monks-tokenbar flexcol">
+    <div class="dialog-content">
+        <form style="height:100%;">
+            <div class="flexcol">
+                <section class="sheet-header">
+                    <div class="form-group">
+                        <label>{{localize 'MonksTokenBar.RollMode'}}</label>
+                        <select id="contestedroll-rollmode">
+                            <option value="roll" selected="">{{localize 'MonksTokenBar.PublicRoll'}}</option>
+                            <option value="gmroll">{{localize 'MonksTokenBar.PrivateGMRoll'}}</option>
+                            <option value="blindroll">{{localize 'MonksTokenBar.BlindGMRoll'}}</option>
+                            <option value="selfroll">{{localize 'MonksTokenBar.SelfRoll'}}</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>{{localize 'MonksTokenBar.Flavor'}}</label>
+                        <input type="text" id="monks-tokenbar-flavor" value="{{flavor}}" />
+                    </div>
+                    <div class="form-group">
+                        <label>{{localize 'MonksTokenBar.HideNPCName'}}</label>
+                        <input id="contestedroll-hidenpc" type="checkbox" {{#if hidenpcname}} checked{{/if}} />
+                    </div>
+                </section>
+                <div class="player-group">
+                    <div>
+                        <header>
+                            <div class="name">{{localize 'MonksTokenBar.Actors'}}</div>
+                        </header>
+
+                        <ol class="actor-list">
+                            <li class="item flexrow " data-item-id="{{entries.0.token.id}}" draggable="true">
+                                <div class="name">
+                                    <div class="player-image" style="background-image: url('{{entries.0.token.document.texture.src}}') "><video width="30" height="30"><source src="{{entries.0.token.document.texture.src}}" /></video></div>
+                                    <span>
+                                        {{entries.0.token.name}}
+                                    </span>
+                                </div>
+                                <div class="request">
+                                    <select data-index="0">
+                                        {{selectGroups options selected=entries.0.request.0.slug localize=true}}
+                                    </select>
+                                </div>
+                                <div class="controls">
+                                    <button type="button" class="inline-control icon fas fa-trash" data-tooltip="{{localize 'MonksTokenBar.RemoveActor'}}" data-action="removeToken"></button>
+                                </div>
+                            </li>
+                        </ol>
+                    </div>
+                    <div>
+                        <header>
+                            <div class="name">{{localize 'MonksTokenBar.Vs'}}</div>
+                        </header>
+
+                        <ol class="actor-list">
+                            <li class="item flexrow " data-item-id="{{entries.1.token.id}}" draggable="true">
+                                <div class="name">
+                                    <div class="player-image" style="background-image: url('{{entries.1.token.document.texture.src}}') "><video width="30" height="30"><source src="{{entries.1.token.document.texture.src}}" /></video></div>
+                                    <span>
+                                        {{entries.1.token.name}}
+                                    </span>
+                                </div>
+                                <div class="request">
+                                    <select data-index="1">
+                                        {{selectGroups options selected=entries.1.request.0.slug localize=true}}
+                                    </select>
+                                </div>
+                                <div class="controls">
+                                    <button type="button" class="inline-control icon fas fa-trash" data-tooltip="{{localize 'MonksTokenBar.RemoveActor'}}" data-action="removeToken"></button>
+                                </div>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

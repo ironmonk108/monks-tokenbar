@@ -67,6 +67,7 @@
 	"MonksTokenBar.ActorNoSkill": ": Does not have that skill",
 	"MonksTokenBar.UnknownSystem": "You're not using a system that Monk's Tokenbar supports.",
 	"MonksTokenBar.ActorNotCombatant": "Actor is not part of combat to roll initiative",
+	"MonksTokenBar.CombatNotStarted": "Cannot change to combat movement, there is no active combat",
 
 	"MonksTokenBar.TokenbarSettings": "Tokenbar Settings",
 	"MonksTokenBar.IconSettings": "Icon Settings",
@@ -99,14 +100,6 @@
 	"MonksTokenBar.allow-player.hint": "Allow the player to use the toolbar, restricted to characters they own.",
 	"MonksTokenBar.disable-tokenbar.name": "Disable Tokenbar",
 	"MonksTokenBar.disable-tokenbar.hint": "If you don't wish to see the tokenbar, click this setting",
-	"MonksTokenBar.stat1-icon.name": "Stat1 Icon",
-	"MonksTokenBar.stat1-icon.hint": "Change the icon to display for the first stat.",
-	"MonksTokenBar.stat1-resource.name": "Stat1 Resource",
-	"MonksTokenBar.stat1-resource.hint": "Change the resource displayed by the first stat",
-	"MonksTokenBar.stat2-icon.name": "Stat2 Icon",
-	"MonksTokenBar.stat2-icon.hint": "Change the icon to display for the second stat.",
-	"MonksTokenBar.stat2-resource.name": "Stat2 Resource",
-	"MonksTokenBar.stat2-resource.hint": "Change the resource displayed by the second stat",
 	"MonksTokenBar.movement-after-combat.name": "Set movement after combat",
 	"MonksTokenBar.movement-after-combat.hint": "When combat ends, select what movement type to set it back to",
 	"MonksTokenBar.free-npc-combat.name": "Allow Active Combatant NPC to move",
@@ -274,10 +267,20 @@
 	"MonksTokenBar.MacroCopied": "Macro Copied",
 	"MonksTokenBar.SelectCriticalSaved": "Select Critical Saved",
 	"MonksTokenBar.SelectCriticalFailed": "Select Critical Failed",
+	"MonksTokenBar.DefaultTheme": "Deafult Theme",
 
 	"MonksTokenBar.None": "No one",
 	"MonksTokenBar.GMOnly": "GM Only",
 	"MonksTokenBar.PlayersOnly": "Players",
-	"MonksTokenBar.Everyone": "Everyone"
+	"MonksTokenBar.Everyone": "Everyone",
 
+	"MonksTokenBar.THEME": {
+		"savingthrow": "Saving Throw",
+		"assignxp": "Assign XP"
+	},
+
+	"MonksTokenBar.ASSIGNXP.TABS": {
+		"monsters": "Monsters",
+		"players": "Players"
+	}
 }

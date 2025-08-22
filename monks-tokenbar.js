@@ -131,7 +131,7 @@ export class MonksTokenBar {
 
         game.keybindings.register('monks-tokenbar', 'request-roll', {
             name: 'MonksTokenBar.RequestRoll',
-            editable: [{ key: 'KeyR', modifiers: [KeyboardManager.MODIFIER_KEYS?.ALT] }],
+            editable: [{ key: 'KeyR', modifiers: [foundry.helpers.interaction.KeyboardManager.MODIFIER_KEYS?.ALT] }],
             restricted: true,
             onDown: (data) => {
                 let roll = game.user.getFlag("monks-tokenbar", "lastmodeST");
@@ -142,7 +142,7 @@ export class MonksTokenBar {
 
         game.keybindings.register('monks-tokenbar', 'request-roll-gm', {
             name: 'MonksTokenBar.RequestRollGM',
-            editable: [{ key: 'KeyR', modifiers: [KeyboardManager.MODIFIER_KEYS?.ALT, KeyboardManager.MODIFIER_KEYS?.SHIFT] }],
+            editable: [{ key: 'KeyR', modifiers: [foundry.helpers.interaction.KeyboardManager.MODIFIER_KEYS?.ALT, foundry.helpers.interaction.KeyboardManager.MODIFIER_KEYS?.SHIFT] }],
             restricted: true,
             onDown: (data) => {
                 new SavingThrowApp(null, {rollmode: "selfroll"}).render(true);
@@ -153,29 +153,16 @@ export class MonksTokenBar {
 
         Handlebars.registerHelper({ selectGroups: MonksTokenBar.selectGroups });
 
-        /*
-        if (setting('stats') == undefined) {
-            //check and see if the user has selected something other than the default
-            if (setting('stat1-icon') != undefined || setting('stat1-resource') != undefined || setting('stat2-icon') != undefined || setting('stat2-resource') != undefined) {
-                let oldstats = {};
-                if (setting('stat1-resource') != undefined)
-                    oldstats[setting('stat1-resource')] = setting('stat1-icon');
-                if (setting('stat2-resource') != undefined)
-                    oldstats[setting('stat2-resource')] = setting('stat2-icon');
-                game.settings.set('monks-tokenbar', 'stats', oldstats);
-            }
-        }*/
-
-        patchFunc("Token.prototype._canDrag", function (wrapped, ...args) {
+        patchFunc("foundry.canvas.placeables.Token.prototype._canDrag", function (wrapped, ...args) {
             let result = wrapped(...args);
             return (MonksTokenBar.allowMovement(this.document, false) ? result : false);
         });
 
-        patchFunc("ChatLog.prototype._getEntryContextOptions", function (wrapped, ...args) {
+        patchFunc("foundry.applications.sidebar.tabs.ChatLog.prototype._getEntryContextOptions", function (wrapped, ...args) {
             let menu = wrapped.call(...args);
 
-            let canHeroPointReroll = ($li) => {
-                const message = game.messages.get($li[0].dataset.messageId, { strict: !0 });
+            let canHeroPointReroll = (li) => {
+                const message = game.messages.get(li.dataset.messageId, { strict: !0 });
                 if (!message.getFlag("monks-tokenbar", "what"))
                     return false;
 
@@ -191,8 +178,8 @@ export class MonksTokenBar {
                 //return game.user.isGM && !!message.flags.pf2e.context
                 //message.isRerollable && !!actor?.isOfType("character") && actor.heroPoints.value > 0
             };
-            let canReroll = ($li) => {
-                const message = game.messages.get($li[0].dataset.messageId, { strict: !0 });
+            let canReroll = (li) => {
+                const message = game.messages.get(li.dataset.messageId, { strict: !0 });
 
                 if (!MonksTokenBar.system.canReroll)
                     return false;
@@ -215,8 +202,8 @@ export class MonksTokenBar {
                     name: "PF2E.RerollMenu.HeroPoint",
                     icon: '<i class="fas fa-hospital-symbol"></i>',
                     condition: canHeroPointReroll,
-                    callback: $li => {
-                        const message = game.messages.get($li[0].dataset.messageId, { strict: !0 });
+                    callback: li => {
+                        const message = game.messages.get(li.dataset.messageId, { strict: !0 });
                         let what = message.getFlag("monks-tokenbar", "what");
                         if (what == "savingthrow")
                             SavingThrow.rerollFromMessage(message, MonksTokenBar.contextId, { heroPoint: !0 });
@@ -228,8 +215,8 @@ export class MonksTokenBar {
                     name: "Reroll and keep the new result",
                     icon: '<i class="fas fa-dice"></i>',
                     condition: canReroll,
-                    callback: $li => {
-                        const message = game.messages.get($li[0].dataset.messageId, { strict: !0 });
+                    callback: li => {
+                        const message = game.messages.get(li.dataset.messageId, { strict: !0 });
                         let what = message.getFlag("monks-tokenbar", "what");
                         if (what == "savingthrow")
                             SavingThrow.rerollFromMessage(message, MonksTokenBar.contextId);
@@ -241,8 +228,8 @@ export class MonksTokenBar {
                     name: "Reroll and keep the worst result",
                     icon: '<i class="fas fa-dice-one"></i>',
                     condition: canReroll,
-                    callback: $li => {
-                        const message = game.messages.get($li[0].dataset.messageId, { strict: !0 });
+                    callback: li => {
+                        const message = game.messages.get(li.dataset.messageId, { strict: !0 });
                         let what = message.getFlag("monks-tokenbar", "what");
                         if (what == "savingthrow")
                             SavingThrow.rerollFromMessage(message, MonksTokenBar.contextId, { keep: "worst" });
@@ -254,8 +241,8 @@ export class MonksTokenBar {
                     name: "Reroll and keep the better result",
                     icon: '<i class="fas fa-dice-six"></i>',
                     condition: canReroll,
-                    callback: $li => {
-                        const message = game.messages.get($li[0].dataset.messageId, { strict: !0 });
+                    callback: li => {
+                        const message = game.messages.get(li.dataset.messageId, { strict: !0 });
                         let what = message.getFlag("monks-tokenbar", "what");
                         if (what == "savingthrow")
                             SavingThrow.rerollFromMessage(message, MonksTokenBar.contextId, { keep: "best" });
@@ -319,7 +306,7 @@ export class MonksTokenBar {
         let findToken = function (t) {
             if (typeof t == 'string') {
                 t = canvas.tokens.placeables.find(p => p.name == t || p.id == t) || game.actors.find(p => p.name == t || p.id == t);
-            } else if (!(t instanceof Token || t instanceof Actor))
+            } else if (!(t instanceof foundry.canvas.placeables.Token || t instanceof Actor))
                 t = null;
 
             if (t?.actor?.type == "group") {
@@ -402,7 +389,7 @@ export class MonksTokenBar {
             const targets = _getChatCardTargets(card);
             const entries = MonksTokenBar.getTokenEntries(targets);
             if (entries.length) {
-                let savingthrow = new SavingThrowApp(entries, { request: 'save:' + button.dataset.ability, dc: item.system.save.dc });
+                let savingthrow = await new SavingThrowApp(entries, { request: 'save:' + button.dataset.ability, dc: item.system.save.dc });
                 savingthrow.requestRoll();
 
                 event.preventDefault();
@@ -427,17 +414,18 @@ export class MonksTokenBar {
         return game.dice3d ? game.settings.get("dice-so-nice", "immediatelyDisplayChatMessages") || !game.dice3d.isEnabled() : true;
     }
 
-    static ready() {
+    static async ready() {
         game.socket.on(MonksTokenBar.SOCKET, MonksTokenBar.onMessage);
 
         game.settings.settings.get("monks-tokenbar.stats").default = MonksTokenBar.system.defaultStats;
 
-        tinyMCE.PluginManager.add('dcconfig', dcconfiginit);
+        tinyMCE?.PluginManager.add('dcconfig', dcconfiginit);
 
         MonksTokenBar.setTokenSize();
 
         if ((game.user.isGM || setting("allow-player")) && !setting("disable-tokenbar")) {
-            MonksTokenBar.tokenbar = new TokenBar();
+            let { top, left } = game.user.getFlag("monks-tokenbar", "position");
+            MonksTokenBar.tokenbar = await new TokenBar().render(true, { position: { top, left } });
             MonksTokenBar.tokenbar.refresh();
         }
 
@@ -482,8 +470,15 @@ export class MonksTokenBar {
                     const revealDice = MonksTokenBar.revealDice();
                     for (let response of data.response) {
                         if (response.roll) {
-                            let r = Roll.fromData(response.roll);
-                            response.roll = r;
+                            if (response.roll instanceof Array) {
+                                for (let i = 0; i < response.roll.length; i++) {
+                                    let r = Roll.fromData(response.roll[i]);
+                                    response.roll[i] = r;
+                                }
+                            } else {
+                                let r = Roll.fromData(response.roll);
+                                response.roll = r;
+                            }
                         }
                     }
                     if (data.type == 'savingthrow')
@@ -605,8 +600,10 @@ export class MonksTokenBar {
     }
 
     static async changeGlobalMovement(movement) {
-        if (movement == MTB_MOVEMENT_TYPE.COMBAT && (game.combat == undefined || !game.combat.started))
+        if (movement == MTB_MOVEMENT_TYPE.COMBAT && (game.combat == undefined || !game.combat.started)) {
+            ui.notifications.warn(i18n("MonksTokenBar.CombatNotStarted"));
             return;
+        }
 
         log('Changing global movement', movement);
         await game.settings.set("monks-tokenbar", "movement", movement);
@@ -637,7 +634,7 @@ export class MonksTokenBar {
 
         let newMove = (game.settings.get("monks-tokenbar", "movement") != movement ? movement : null);
         for (let token of tokens) {
-            if (token instanceof Token)
+            if (token instanceof foundry.canvas.placeables.Token)
                 token = token.document;
             let oldMove = token.getFlag("monks-tokenbar", "movement");
             if (newMove != oldMove) {
@@ -749,17 +746,17 @@ export class MonksTokenBar {
 
                 let axpa;
                 if (showXP) {
-                    axpa = new AssignXPApp(combat, showLoot ? { classes: ["dual"] } : null);
+                    axpa = await new AssignXPApp(combat, showLoot ? { classes: ["dual"] } : null);
                     await axpa.render(true);
                 }
                 /*
                 if (game.settings.get("monks-tokenbar", "show-xp-dialog") && (game.system.id !== "sw5e" || (game.system.id === "sw5e" && !game.settings.get('sw5e', 'disableExperienceTracking')))) {
-                    axpa = new AssignXPApp(combat);
+                    axpa = await new AssignXPApp(combat);
                     await axpa.render(true);
                 }*/
 
                 if (showLoot) {
-                    let lapp = new LootablesApp(combat, showXP ? { classes: ["dual"] } : null);
+                    let lapp = await new LootablesApp(combat, showXP ? { classes: ["dual"] } : null);
                     if (!lapp.entries.length)
                         lapp.close();
                     else {
@@ -1026,7 +1023,7 @@ export class MonksTokenBar {
         let list = $('<ul>')
             .addClass('journal-list')
             .append($('<li>').addClass('journal-item convert-item').attr('data-uuid', 'convert').toggle(collection.documentName == "Actor" && collection.preventCreate !== true).html($('<div>').addClass('journal-title').toggleClass('selected', uuid == 'convert').html("-- convert tokens --")).click(selectItem.bind()))
-            .append(getFolders(collection.directory?.folders?.filter(f => f.folder == null)))
+            .append(getFolders(collection.folders?.filter(f => f.folder == null)))
             .append(getEntries(null, collection.contents.filter(j => j.folder == null)));
 
         $(html).click(function () { list.removeClass('open') });
@@ -1206,12 +1203,12 @@ Hooks.on('preUpdateToken', (document, update, options, userId) => {
 
 Hooks.on("getSceneControlButtons", (controls) => {
     if (game.user.isGM && setting('show-lootable-menu') && setting('loot-sheet') != 'none' && MonksTokenBar.getLootSheetOptions()[setting('loot-sheet')] != undefined) {
-        let tokenControls = controls.find(control => control.name === "token")
-        tokenControls.tools.push({
+        let tokenControls = controls.tokens;
+        tokenControls.tools.togglelootable = {
             name: "togglelootable",
             title: "MonksTokenBar.TransferLoot",
             icon: "fas fa-dolly-flatbed",
-            onClick: () => {
+            onChange: () => {
                 if (setting('loot-sheet') == 'none') {
                     ui.notifications.warn('No lootsheet selected');
                     return;
@@ -1220,7 +1217,7 @@ Hooks.on("getSceneControlButtons", (controls) => {
             },
             toggle: false,
             button: true
-        });
+        };
     }
 });
 
@@ -1268,12 +1265,12 @@ Hooks.on("renderCombatTracker", (app, html, data) => {
             let id = this.dataset.combatantId;
             let combatant = app.viewed.combatants.find(c => c.id == id);
             if (combatant && combatant.hasPlayerOwner && combatant.token) {
-                $($('<a>')
-                    .addClass('combatant-control')
+                $($('<button>')
+                    .attr("type", "button")
+                    .addClass('inline-control combatant-control icon fa-solid fa-running')
                     .toggleClass('active', combatant.token.getFlag('monks-tokenbar', 'movement') == MTB_MOVEMENT_TYPE.FREE)
                     .attr('data-tooltip', 'Allow Movement')
-                    .attr('data-control', 'toggleMovement')
-                    .html('<i class="fas fa-running"></i>')
+                    .attr('data-action', 'toggleMovement')
                     .click(MonksTokenBar.toggleMovement.bind(MonksTokenBar, combatant))
                 ).insertBefore($('.token-effects', this));
             }
@@ -1290,18 +1287,19 @@ Hooks.on("renderTokenConfig", (app, html, data) => {
         let group = $('<div>')
             .addClass('form-group')
             .append($('<label>').html('Show on Tokenbar'))
-            .append($('<select>').attr('name', 'flags.monks-tokenbar.include')
-                .append($('<option>').attr('value', 'default').html('Default').prop('selected', include == 'default'))
-                .append($('<option>').attr('value', 'include').html('Include').prop('selected', include == 'include'))
-                .append($('<option>').attr('value', 'exclude').html('Exclude').prop('selected', include == 'exclude')));
+            .append($('<div>').addClass('form-fields')
+                .append($('<select>').attr('name', 'flags.monks-tokenbar.include')
+                    .append($('<option>').attr('value', 'default').html('Default').prop('selected', include == 'default'))
+                    .append($('<option>').attr('value', 'include').html('Include').prop('selected', include == 'include'))
+                    .append($('<option>').attr('value', 'exclude').html('Exclude').prop('selected', include == 'exclude'))));
 
-        $('div[data-tab="character"]', html).append(group);
+        $('div[data-tab="identity"]', html).append(group);
 
         app.setPosition();
     }
 });
 
-Hooks.on("renderChatMessage", async (message, html, data) => {
+Hooks.on("renderChatMessageHTML", async (message, html, data) => {
     $('.item-card button[data-action="save"]', html).click(MonksTokenBar.chatCardAction.bind(message));
 
     if (message.rolls.length != undefined && message.isRoll) {
@@ -1310,7 +1308,7 @@ Hooks.on("renderChatMessage", async (message, html, data) => {
             $(html).on('click', $.proxy(MonksTokenBar.onClickMessage, MonksTokenBar, message, html));
     }
 
-    const levelCard = html.find(".monks-tokenbar.level-up");
+    const levelCard = $(".monks-tokenbar.level-up", html);
     if (levelCard.length !== 0) {
         let actor = await fromUuid(message.getFlag("monks-tokenbar", "actor"));
         let level = parseInt(message.getFlag("monks-tokenbar", "level"));
@@ -1401,7 +1399,7 @@ Hooks.on("setupTileActions", (app) => {
                 type: "select",
                 subtype: "entity",
                 options: { show: ['token', 'within', 'players', 'previous', 'tagger'] },
-                restrict: (entity) => { return (entity instanceof Token); },
+                restrict: (entity) => { return (entity instanceof foundry.canvas.placeables.Token); },
                 defaultType: "tokens"
             },
             {
@@ -1511,7 +1509,7 @@ Hooks.on("setupTileActions", (app) => {
 
             let dc = await game.MonksActiveTiles.getValue(action.data.dc, args);
 
-            let savingthrow = new SavingThrowApp(MonksTokenBar.getTokenEntries(entities), { rollmode: action.data.rollmode, request: [{ type, key }], dc, flavor });
+            let savingthrow = await new SavingThrowApp(MonksTokenBar.getTokenEntries(entities), { rollmode: action.data.rollmode, request: [{ type, key }], dc, flavor });
             savingthrow['active-tiles'] = { id: args._id, tile: args.tile.uuid, action: action };
             if (action.data.silent === true) {
                 let msg = await savingthrow.requestRoll();
@@ -1549,7 +1547,7 @@ Hooks.on("setupTileActions", (app) => {
                 subtype: "entity",
                 required: true,
                 options: { show: ['token', 'within', 'players', 'previous'] },
-                restrict: (entity) => { return (entity instanceof Token); },
+                restrict: (entity) => { return (entity instanceof foundry.canvas.placeables.Token); },
                 defaultType: 'tokens',
                 placeholder: "Please select a token"
             },
@@ -1567,7 +1565,7 @@ Hooks.on("setupTileActions", (app) => {
                 subtype: "entity",
                 required: true,
                 options: { show: ['token', 'within', 'players', 'previous'] },
-                restrict: (entity) => { return (entity instanceof Token); },
+                restrict: (entity) => { return (entity instanceof foundry.canvas.placeables.Token); },
                 defaultType: 'tokens',
                 placeholder: "Please select a token"
             },
@@ -1660,7 +1658,7 @@ Hooks.on("setupTileActions", (app) => {
                 flavor = compiled(context, { allowProtoMethodsByDefault: true, allowProtoPropertiesByDefault: true }).trim();
             }
 
-            let contested = new ContestedRollApp(
+            let contested = await new ContestedRollApp(
                 [request1, request2],
                 { rollmode: action.data.rollmode, request: action.data.request, flavor: flavor });
             contested['active-tiles'] = { id: args._id, tile: args.tile.uuid, action: action };
@@ -1752,7 +1750,7 @@ Hooks.on("setupTileActions", (app) => {
                 type: "select",
                 subtype: "entity",
                 options: { show: ['token', 'within', 'players', 'previous'] },
-                restrict: (entity) => { return (entity instanceof Token); },
+                restrict: (entity) => { return (entity instanceof foundry.canvas.placeables.Token); },
                 defaultType: "tokens"
             },
             {
@@ -1797,7 +1795,7 @@ Hooks.on("setupTileActions", (app) => {
 
             let xp = await game.MonksActiveTiles.getValue(action.data.xp, args);
 
-            let assignxp = new AssignXPApp(entities, { xp: xp, reason: action.data.reason, dividexp: action.data.dividexp});
+            let assignxp = await new AssignXPApp(entities, { xp: xp, reason: action.data.reason, dividexp: action.data.dividexp});
             if (action.data.silent === true) {
                 let msg = await assignxp.assign();
                 if (msg && action.data.fastforward === true)

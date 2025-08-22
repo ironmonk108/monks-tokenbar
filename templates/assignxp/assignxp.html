@@ -1,0 +1,122 @@
+<div class="monks-tokenbar flexcol">
+    <div class="dialog-content">
+        <form style="height:100%;">
+            <div class="form-group">
+                <label>{{localize 'MonksTokenBar.Experience'}}</label>
+                <input type="text" id="assign-xp-value" style="text-align:right;flex:0 0 100px" value="{{xp}}" />
+                <button type="button" class="recalculate" data-button="recalculate" title="{{localize 'MonksTokenBar.RecalculateXP'}}" style="flex: 0 0 30px; height: 30px;"><i class="fas fa-calculator"></i></button>
+            </div>
+            <div class="form-group">
+              <label for="dividexp">{{localize 'MonksTokenBar.DivideExperience'}}</label>
+              <select id="dividexp" name="dividexp">
+                {{selectOptions divideXpOptions selected=dividexp localize=true}}
+              </select>
+            </div>
+            <div class="form-group">
+                <label>{{localize 'MonksTokenBar.Reason'}}</label>
+                <input type="text" id="assign-xp-reason" value="{{reason}}" />
+            </div>
+            <div class="sheet">
+                <nav class="sheet-navigation tabs" data-group="primary">
+                    <a class="item" data-tab="monsters">{{localize 'MonksTokenBar.Creatures'}}{{#if (gt monsters.length 0)}}<sup class="creature-count">{{ monsters.length}}</sup>{{/if}}</a>
+                    <a class="item active" data-tab="players">{{localize 'MonksTokenBar.Players'}}{{#if (gt actors.length 0)}}<sup class="creature-count">{{ actors.length}}</sup>{{/if}}</a>
+                </nav>
+                <section class="sheet-body">
+                    <div class="tab monsters" data-group="primary" data-tab="monsters">
+                        <div class="tab-inner flexcol">
+                            <ol class="items-list">
+                                <li class="items-header flexrow">
+                                    <h3 class="item-name noborder flexrow">{{localize 'MonksTokenBar.Creatures'}}</h3>
+
+                                    <div class="item-controls flexrow">
+                                        <a class="item-control" title="{{localize 'MonksTokenBar.AddActor'}}" data-type="monster">
+                                            <i class="fas fa-plus"></i>{{localize 'MonksTokenBar.XPAdd'}}
+                                        </a>
+                                        <a class="item-control" title="{{localize 'MonksTokenBar.ClearAll'}}" data-type="disable">
+                                            <i class="fas fa-trash-alt"></i>{{localize 'MonksTokenBar.Clear'}}
+                                        </a>
+                                    </div>
+                                </li>
+
+                                <ol class="item-list">
+                                    {{#each monsters}}
+                                    <li class="item flexrow" data-item-id="{{this.actor._id}}" draggable="false">
+                                        <div class="item-name flexrow rollable">
+                                            <div class="item-image" style="background-image: url('{{this.actor.img}}')">
+                                                <video width="30" height="30"><source src="{{this.actor.img}}" /></video>
+                                                <i class="fas fa-ban"></i>
+                                            </div>
+                                            <h4>
+                                                {{this.actor.name}} {{#if this.defeated}}<i class="fas fa-skull"></i>{{/if}}
+                                            </h4>
+                                        </div>
+                                        <div class="item-controls flexrow" style="text-align: right;">
+                                            {{#if this.xp}}<small>{{this.xp}}xp</small>{{/if}}
+                                        </div>
+                                        <div class="item-controls flexrow">
+                                            <a class="item-control item-delete" title="{{localize 'MonksTokenBar.RemoveActor'}}"><i class="fas {{#if this.disabled}}fa-plus{{else}}fa-trash{{/if}}"></i></a>
+                                        </div>
+                                    </li>
+                                    {{/each}}
+                                </ol>
+                            </ol>
+                        </div>
+                    </div>
+                    <div class="tab players active" data-group="primary" data-tab="players">
+                        <div class="tab-inner flexcol">
+                            <ol class="items-list">
+                                <li class="items-header flexrow">
+                                    <h3 class="item-name noborder flexrow">{{localize 'MonksTokenBar.Actors'}}</h3>
+
+                                    <div class="item-controls flexrow">
+                                        <a class="item-control" title="{{localize 'MonksTokenBar.AddPlayers'}}" data-type="player">
+                                            <i class="fas fa-child"></i>{{localize 'MonksTokenBar.Players'}}
+                                        </a>
+                                        <a class="item-control" title="{{localize 'MonksTokenBar.InitialEntities'}}" data-type="initial">
+                                            <i class="fas fa-person-walking-arrow-loop-left"></i>{{localize 'MonksTokenBar.Initial'}}
+                                        </a>
+                                        <a class="item-control" title="{{localize 'MonksTokenBar.AddLastTokens'}}" data-type="last">
+                                            <i class="fas fa-bolt"></i>{{localize 'MonksTokenBar.LastTokens'}}
+                                        </a>
+                                        <a class="item-control" title="{{localize 'MonksTokenBar.AddActor'}}" data-type="actor">
+                                            <i class="fas fa-plus"></i>{{localize 'MonksTokenBar.XPAdd'}}
+                                        </a>
+                                        <a class="item-control" title="{{localize 'MonksTokenBar.ClearAll'}}" data-type="clear">
+                                            <i class="fas fa-trash-alt"></i>{{localize 'MonksTokenBar.Clear'}}
+                                        </a>
+                                    </div>
+                                </li>
+
+                                <ol class="item-list">
+                                    {{#each actors}}
+                                    <li class="item flexrow{{#if this.disabled}} disabled{{/if}}" data-item-id="{{this.actor._id}}" draggable="false">
+                                        <div class="item-name flexrow rollable">
+                                            <div class="item-image" style="background-image: url('{{this.actor.img}}')">
+                                                <video width="30" height="30"><source src="{{this.actor.img}}" /></video>
+                                                <i class="fas fa-ban"></i>
+                                            </div>
+                                            <h4>
+                                                {{this.actor.name}}
+                                            </h4>
+                                        </div>
+                                        <div style="flex:0 0 60px;">
+                                            <input type="number" class="charxp" value="{{this.xp}}" />
+                                        </div>
+                                        <div class="item-controls flexrow">
+                                            <a class="item-control item-delete" title="{{localize 'MonksTokenBar.RemoveActor'}}"><i class="fas {{#if this.disabled}}fa-plus{{else}}fa-trash{{/if}}"></i></a>
+                                        </div>
+                                    </li>
+                                    {{/each}}
+                                </ol>
+                            </ol>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </form>
+    </div>
+    <div class="dialog-buttons flexrow">
+        <button class="dialog-button auto-assign" data-button="auto-assign"><i class="fas fa-up-from-line"></i> {{localize 'MonksTokenBar.AutoAssign'}}</button>
+        <button class="dialog-button assign" data-button="assign">{{localize 'MonksTokenBar.Assign'}}</button>
+    </div>
+</div>

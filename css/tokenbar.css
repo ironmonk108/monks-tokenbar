@@ -2,20 +2,7 @@
     --tokenbar-token-size: 48px;
 }
 
-#tokenbar {
-    z-index: 65;
-    position: fixed;
-    /*height: 92px;*/
-    pointer-events: none;
-    flex-wrap: nowrap;
-    display: flex !important;
-    align-items: flex-end;
-    width: fit-content;
-}
-
 #tokenbar.vertical {
-    align-items: flex-start;
-    align-content: flex-start;
     vertical-align: top;
     flex-direction: column;
     min-width: 105px;
@@ -173,8 +160,8 @@ body #tokenbar-window:first-child{
     list-style: none;
     margin: 0 2px;
     padding: 0;
-    border: 1px solid #000;
-    border-radius: 3px;
+    /*border: 1px solid #000;
+    border-radius: 3px;*/
     flex-wrap: nowrap;
     align-items: flex-end;
 }
@@ -198,13 +185,13 @@ body #tokenbar-window:first-child{
     justify-content: flex-end;
     transition: width 0.4s linear, height 0.4s linear;
     height: fit-content;
+    margin-bottom: 0px;
 }
 
 #tokenbar.vertical #token-action-bar .token-list .token {
     flex-wrap: nowrap;
     flex-direction: row-reverse;
-    justify-content: flex-start;
-    width: calc(var(--tokenbar-token-size) + 80px);
+    width: calc(var(--tokenbar-token-size) + 70px);
 }
 
 #tokenbar .token-list .token.only-actor {
@@ -230,7 +217,6 @@ body #tokenbar-window:first-child{
 }
 
 #tokenbar.vertical #token-action-bar .token-list .token .token-stats {
-    flex: 0 0 65px;
     justify-content: flex-start;
 }
 
@@ -242,6 +228,7 @@ body #tokenbar-window:first-child{
     min-height: var(--tokenbar-token-size);
     justify-content: center;
     display: flex;
+    position: relative;
 }
 
 #tokenbar.vertical .token .token-content {
@@ -298,10 +285,10 @@ body #tokenbar-window:first-child{
     width: calc(100% + 4px);
     height: 10px;
     margin-top: -8px;
-    left: 0px;
-    bottom:-2px;
+    left: 1px;
+    bottom:-1px;
     border: 2px solid rgba(0, 0, 0, 0.9);
-    border-radius: 3px;
+    border-radius: 0px;
     background-color: rgba(0, 0, 0, 0.5);
     margin-left: -2px;
 }
@@ -313,7 +300,7 @@ body #tokenbar-window:first-child{
 
 #tokenbar .resource .bar {
     border: 1px solid rgba(0, 0, 0, 0.8);
-    border-radius: 3px;
+    border-radius: 0px;
     height: calc(100% + 2px);
     background-color: rgba(0, 0, 0, 0.4);
     position: absolute;
@@ -371,7 +358,7 @@ body #tokenbar-window:first-child{
     position: absolute;
     width: 20px;
     height: 20px;
-    bottom: 28px;
+    top: 0px;
     left: 0px;
     color: #ffc163;
     filter: drop-shadow( 0 0 5px black);
@@ -404,7 +391,7 @@ body #tokenbar-window:first-child{
     position: absolute;
     width: 20px;
     height: 20px;
-    bottom: 28px;
+    top: 0px;
     right: 0px;
     color: #ffc163;
     filter: drop-shadow( 0 0 5px black);
@@ -516,11 +503,13 @@ body #tokenbar-window:first-child{
     flex: 2;
 }
 
-.monks-tokenbar .sheet .items-list .item-name h3, 
+.monks-tokenbar .sheet .items-list .item-name h3,
 .monks-tokenbar .sheet .items-list .item-name h4 {
     margin: 0;
     white-space: nowrap;
     overflow-x: hidden;
+    border-bottom: 0px;
+    padding-bottom: 0px;
 }
 
 .monks-tokenbar .sheet .items-list .item-name h4 .request-name{
@@ -568,13 +557,13 @@ body #tokenbar-window:first-child{
     justify-content: flex-end;
 }
 
-#requestsavingthrow .monks-tokenbar .sheet .items-list .items-header .item-controls,
+#savingthrow .monks-tokenbar .sheet .items-list .items-header .item-controls,
 #assignexperience .monks-tokenbar .sheet .items-list .items-header .item-controls {
     flex: 1 1 auto;
     flex-wrap: nowrap;
 }
 
-#requestsavingthrow .monks-tokenbar .sheet .items-list .items-header .item-controls a,
+#savingthrow .monks-tokenbar .sheet .items-list .items-header .item-controls a,
 #assignexperience .monks-tokenbar .sheet .items-list .items-header .item-controls a {
     flex-grow: 0;
     white-space: nowrap;
@@ -650,52 +639,63 @@ body #tokenbar-window:first-child{
     font-weight: 700;
     text-align: left;
     font-size: 16px;
-    min-width:60px;
+    min-width: 60px;
+    border-bottom: 0px;
+    padding-bottom: 0px;
 }
 
-#requestsavingthrow .items-list.inventory-list {
+#savingthrow .items-list.inventory-list {
     overflow: hidden;
     height: 100%;
 }
 
-#requestsavingthrow .request-header {
-    border-radius: 4px;
+#savingthrow .request-header {
     color: #fff;
-    background: rgba(0, 0, 0, 0.5);
-    box-shadow: 0 0 10px #000;
-    border: 1px solid #000;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px groove #e7d1b1;
     padding: 1px 8px;
 }
 
-#requestsavingthrow .request-grid {
+#savingthrow.theme-light .request-header {
+    color: #000;
+    background: rgba(0, 0, 0, 0.2);
+    border: 2px groove #eeede0;
+    padding: 1px 8px;
+}
+
+#savingthrow .request-grid {
     grid-template-columns: 33% 33% 33%;
     display: grid;
     box-sizing: content-box;
     margin: 4px 0px 8px 0px;
 }
 
-#requestsavingthrow .request-grid.dice-group {
+#savingthrow .request-grid.dice-group {
     grid-template-columns: 12.5% 12.5% 12.5% 12.5% 12.5% 12.5% 12.5% 12.5%;
     text-align: center;
 }
 
-#requestsavingthrow .request-grid > div {
+#savingthrow .request-grid > div {
     border: 1px solid transparent;
     border-radius: 4px;
     padding: 2px;
     cursor: pointer;
-    color: #333;
+    color: #ccc;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-#requestsavingthrow .request-grid > div.not-everyone {
+#savingthrow.theme-light .request-grid > div {
+    color: #555;
+}
+
+#savingthrow .request-grid > div.not-everyone {
     color: Highlight;
 }
 
-#requestsavingthrow .request-grid > div.selected,
-#requestsavingthrow .request-grid > div:hover {
+#savingthrow .request-grid > div.selected,
+#savingthrow .request-grid > div:hover {
     border: 1px solid red;
     border-bottom: 1px solid #ff6400;
     box-shadow: 0 0 10px #ff6400;
@@ -706,7 +706,7 @@ body #tokenbar-window:first-child{
     text-overflow: ellipsis;
 }
 
-#requestsavingthrow .request-grid > div.selected {
+#savingthrow .request-grid > div.selected {
     color: #000;
     background: rgba(255, 255, 255, 0.6);
     /*color: #ff6400;*/
@@ -755,6 +755,8 @@ body #tokenbar-window:first-child{
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
+    border-bottom: 0px;
+    padding-bottom: 0px;
 }
 
 .monks-tokenbar.chat-card .card-header h3 .sub-request {
@@ -966,7 +968,6 @@ body.system-pf2e .monks-tokenbar.chat-card .dice-tooltip[data-visibility=gm]:not
 .monks-tokenbar li.item .dice-roll .dice-total {
     flex: 1;
     height: 24px;
-    margin-top: 3px;
 }
 
 .monks-tokenbar li.item .dice-roll .dice-total .dice-result {
@@ -1099,26 +1100,22 @@ body.system-pf2e .monks-tokenbar.chat-card .dice-tooltip[data-visibility=gm]:not
     margin-right: 10px;
 }
 
-.monks-tokenbar.editstats .dialog-content div.icon,
-.monks-tokenbar.editstats .dialog-content div.remove,
-.monks-tokenbar.editstats .dialog-content div.add {
-    cursor: pointer;
-    background-color: transparent;
+#pickicons .font-picker {
+    overflow: hidden;
 }
 
-.monks-tokenbar.pick-icon .font-picker .icon {
-    display: inline-block;
-    width: 30px;
-    height: 30px;
-    cursor: pointer;
-    padding: 8px;
+#pickicons .font-picker .icon-list {
+    flex-wrap: wrap;
+    display: flex;
+    flex-direction: row;
+    overflow-y: auto;
 }
 
-.monks-tokenbar.editstats .tt-hint {
+#editstats .tt-hint {
     color: #999
 }
 
-.monks-tokenbar.editstats .tt-menu {
+#editstats .tt-menu {
     width: 314px;
     margin: 4px 0;
     padding: 4px;
@@ -1132,24 +1129,25 @@ body.system-pf2e .monks-tokenbar.chat-card .dice-tooltip[data-visibility=gm]:not
     -moz-box-shadow: 0 5px 10px rgba(0,0,0,.2);
     box-shadow: 0 5px 10px rgba(0,0,0,.2);
     overflow: hidden;
+    color: #111
 }
 
-.monks-tokenbar.editstats .tt-suggestion {
+#editstats .tt-suggestion {
     padding: 3px;
 }
 
-.monks-tokenbar.editstats .tt-suggestion:hover {
+#editstats .tt-suggestion:hover {
     cursor: pointer;
     color: #fff;
     background-color: #0097cf;
 }
 
-.monks-tokenbar.editstats .tt-suggestion.tt-cursor {
+#editstats .tt-suggestion.tt-cursor {
     color: #fff;
     background-color: #0097cf;
 }
 
-.monks-tokenbar.editstats .tt-suggestion p {
+#editstats .tt-suggestion p {
     margin: 0;
 }
 
@@ -1194,11 +1192,24 @@ li.chat-message.message .message-content .monks-tokenbar *.noselect * {
 }
 
 #lootables .entry-list {
-    max-height: 450px;
+    max-height: 360px;
     overflow-y: auto;
     /*height: 300px;*/
     margin: 0px;
     padding: 0px;
+}
+
+#lootables .entry-list .entry {
+    border-bottom: 1px solid var(--color-light-3);
+}
+
+body.theme-light #lootables:not(.themed) .entry-list .entry,
+#lootables.themed.theme-light .entry-list .entry {
+    border-bottom: 1px solid var(--color-cool-5-90);
+}
+
+body.theme-light #lootables:not(themed) .entry-list .entry:last-child {
+    border-bottom: none;
 }
 
 #lootables .entry-list .loot-entry-image {
@@ -1216,6 +1227,7 @@ li.chat-message.message .message-content .monks-tokenbar *.noselect * {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    display: inline-block;
 }
 
 #lootables .entry-list .loot-item-image {
@@ -1257,6 +1269,9 @@ li.chat-message.message .message-content .monks-tokenbar *.noselect * {
 #lootables .no-item-entry {
     color: #888;
     padding: 4px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 #lootables .journal-select.disabled {
@@ -1267,15 +1282,15 @@ li.chat-message.message .message-content .monks-tokenbar *.noselect * {
     display: none;
 }
 
-#lootables .entry-list a.delete-entry {
+#lootables .entry-list button[data-action="deleteEntry"] {
     position: absolute;
     top: 2px;
     right: 2px;
     opacity: 0.2;
 }
 
-#lootables .entry-list a.delete-entry:hover {
-    opacity: 0.9;
+#lootables .entry-list button[data-action="deleteEntry"]:hover {
+    opacity: 1;
 }
 
 #lootables .entry-quantity {
@@ -1288,14 +1303,7 @@ li.chat-message.message .message-content .monks-tokenbar *.noselect * {
     border: 1px solid #808080;
     border-radius: 2px;
     padding: 0px 2px;
-}
-
-.editstats .stat-name > * {
-    width: 100%;
-}
-
-.monks-tokenbar.editstats .sheet .stat-name input[type="text"] {
-    text-align:left;
+    color: #000000;
 }
 
 .noselect {
@@ -1358,14 +1366,38 @@ a.inline-request-roll {
 
 /* Select with Folders */
 .journal-select {
-    position: relative;
     width: 100%;
-    height: 27px;
-    background: rgba(0, 0, 0, 0.05);
-    border: 1px solid #7a7971;
-    border-radius: 3px;
-    padding: 0 3px;
-    text-overflow: ellipsis;
+    height: var(--input-height);
+    line-height: var(--input-height);
+    padding: 0 0.5rem;
+    background: var(--input-background-color);
+    border: 1px solid var(--input-border-color);
+    border-radius: 4px;
+    box-shadow: var(--input-box-shadow);
+    outline: 1px solid transparent;
+    font-family: inherit;
+    font-size: inherit;
+    color: var(--input-text-color);
+    user-select: text;
+    transition: outline-color 0.5s;
+    cursor: pointer;
+}
+
+body.theme-dark .application:not(themed) .journal-select,
+.application.themed.theme-dark .journal-select {
+    --input-background-color: var(--color-cool-4);
+    --input-border-color: transparent;
+    --input-text-color: var(--color-light-3);
+    --input-focus-outline-color: var(--color-cool-3);
+}
+
+body.theme-light .application:not(themed) .journal-select,
+.application.themed.theme-light .journal-select {
+    --input-border-color: var(--color-dark-6);
+    --input-box-shadow: inset 0 0 6px var(--input-background-color);
+    --input-text-color: var(--color-dark-2);
+    --input-focus-outline-color: var(--color-warm-2);
+    --input-background-color: rgba(0, 0, 0, 0.1);
 }
 
 .journal-select:focus {
@@ -1386,7 +1418,7 @@ a.inline-request-roll {
     text-align: center;
     line-height: 24px;
     font-size: 11px;
-    color: #000;
+    color: var(--input-text-color);
 }
 
 .journal-list {
@@ -1410,6 +1442,10 @@ a.inline-request-roll {
     z-index: 100;
 }
 
+.themed.theme-light .journal-list {
+    background: var(--color-select-option-bg);
+}
+
 .scene-sheet .journal-list {
     max-height: 250px;
 }
@@ -1423,6 +1459,7 @@ a.inline-request-roll {
     padding: 4px;
     cursor: pointer;
     min-height: 25px;
+    line-height: 1.25;
     width: 100%;
     overflow-x: hidden;
     white-space: nowrap;
@@ -1526,4 +1563,250 @@ body.system-dnd5e .monks-tokenbar.chat-card .dice-roll .dice-tooltip-collapser {
 
 body.system-dnd5e .monks-tokenbar.chat-card .dice-roll.expanded .dice-tooltip-collapser {
     display: grid;
+}
+
+#assignexperience .standard-form {
+    gap: 0.5rem;
+}
+
+#assignexperience .sheet-header,
+#savingthrow .sheet-header,
+#contestedroll .sheet-header,
+#lootables .sheet-header {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+}
+
+#assignexperience .tab.monsters,
+#assignexperience .tab.players {
+    gap: 0.5rem;
+}
+
+#savingthrow .player-group,
+#contestedroll .player-group {
+    align-content: flex-start;
+    padding-bottom: 5px;
+    padding-top: 10px;
+}
+
+#assignexperience .tab.monsters header,
+#assignexperience .tab.monsters ol,
+#assignexperience .tab.players header,
+#assignexperience .tab.players ol,
+#savingthrow .player-group header,
+#savingthrow .player-group ol,
+#contestedroll .player-group header,
+#contestedroll .player-group ol,
+#editstats .stats-section header,
+#editstats .stats-section ol {
+    align-items: center;
+    display: grid;
+    gap: 0.25rem;
+    margin: 0;
+    padding: 2px;
+    position: relative;
+    text-align: left;
+}
+
+#assignexperience .tab.monsters header,
+#assignexperience .tab.monsters ol,
+#assignexperience .tab.players header,
+#assignexperience .tab.players ol {
+    grid-template-columns: 16rem 4rem 2rem;
+}
+
+#savingthrow .player-group header,
+#contestedroll .player-group header,
+#editstats .stats-section header {
+    grid-template-columns: 15rem 8rem;
+    height: 28px;
+    margin: 2px 0;
+    padding: 0;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px groove #e7d1b1;
+    font-weight: bold;
+    flex-wrap: nowrap;
+    padding: 1px 8px;
+}
+
+#savingthrow.theme-light .player-group header,
+#contestedroll.theme-light .player-group header {
+    background: rgba(0, 0, 0, 0.2);
+    border-color: #eeede0;
+}
+
+#savingthrow .player-group ol {
+    grid-template-columns: 21rem 1rem;
+}
+
+#contestedroll .player-group ol {
+    grid-template-columns: 16rem 8rem 1rem;
+}
+
+#editstats .stats-section header,
+#editstats .stats-section ol {
+    grid-template-columns: 2rem 23rem 7rem 2rem;
+}
+
+#assignexperience .tab.monsters ol li,
+#assignexperience .tab.players ol li,
+#savingthrow .player-group ol li,
+#contestedroll .player-group ol li,
+#editstats .stats-section ol li {
+    display: contents;
+}
+
+#assignexperience .tab.monsters header .name,
+#assignexperience .tab.monsters ol .name,
+#assignexperience .tab.players header .name,
+#assignexperience .tab.players ol .name,
+#savingthrow .player-group header .name,
+#savingthrow .player-group ol .name,
+#contestedroll .player-group header .name,
+#contestedroll .player-group ol .name {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    display: flex;
+}
+
+#assignexperience .tab.monsters ol .name span,
+#assignexperience .tab.players ol .name span,
+#savingthrow .player-group ol .name span,
+#contestedroll .player-group ol .name span {
+    align-self: center;
+    margin-left: 8px;
+}
+
+#assignexperience .tab.monsters ol .name,
+#assignexperience .tab.players ol .name,
+#savingthrow .player-group ol .name,
+#contestedroll .player-group ol .name {
+    flex: 1 1 auto;
+}
+
+#assignexperience .tab.monsters ol .name .monster-image,
+#assignexperience .tab.players ol .name .player-image,
+#savingthrow .player-group ol .name .player-image,
+#contestedroll .player-group ol .name .player-image,
+#lootables .loot-entry-image {
+    flex: 0 0 30px;
+    width: 30px;
+    height: 30px;
+    background-size: cover;
+    background-position: center;
+    border-radius: 4px;
+    border: 1px solid #808080;
+}
+
+#assignexperience .tab.monsters header .xp,
+#assignexperience .tab.monsters ol .xp,
+#assignexperience .tab.players header .xp,
+#assignexperience .tab.players ol .xp input {
+    text-align: right;
+}
+
+#savingthrow .small-button,
+#contestedroll .small-button {
+    flex: 0 0 50px;
+}
+
+#editstats .stats-section {
+    min-height: 150px;
+}
+
+#editstats .stats-section .icon,
+#editstats .stats-section .colour,
+#editstats .stats-section .controls {
+    text-align: center;
+}
+
+#editstats .stats-section .controls * {
+    align-self: center;
+}
+
+#editstats .stats-section .name .twitter-typeahead {
+    width: 100%;
+}
+
+.monks-tokenbar.assignxp.chat-card .dice-roll .dice-total {
+    font-size: var(--font-size-14);
+}
+
+#lootables .no-item-list {
+    display: grid;
+    grid-auto-flow: row;
+    grid-template-columns: 33% 33% 33%;
+}
+
+#lootables hr {
+    margin: 0.5rem 0;
+}
+
+#lootables p.notes.no-item-note {
+    text-align: center;
+    margin: 0;
+}
+
+#tokenbar {
+    flex-flow: row nowrap;
+    min-width: 10px;
+}
+
+#tokenbar > .window-header {
+    flex: 0 0 25px;
+}
+
+#tokenbar:not(.vertical) > .window-header {
+    width: 25px;
+    align-items: flex-start;
+    padding-top: 0.5rem;
+    padding-left: 0.3rem;
+}
+
+#tokenbar > .window-header *:not(i) {
+    display: none;
+}
+
+#tokenbar .window-content {
+    flex-flow: row nowrap;
+    padding: 4px;
+    align-items: center;
+}
+
+#tokenbar.vertical .window-content {
+    flex-flow: column nowrap;
+}
+
+#tokenbar .button-group {
+    flex-flow: row;
+    display: flex;
+    border: 1px solid #808080;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.1);
+    margin-right: 4px;
+    gap: 0.2rem;
+    padding: 0.2rem;
+}
+
+#tokenbar.vertical .button-group {
+    flex-flow: column;
+}
+
+#tokenbar .button-group button.active {
+    background: var(--button-hover-background-color);
+}
+
+#tokenbar .button-group .tokenbar-buttons {
+    gap: 0.2rem;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+}
+
+#tokenbar.vertical .button-group .tokenbar-buttons {
+    flex-direction: row;
 }

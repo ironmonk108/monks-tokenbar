@@ -15,12 +15,6 @@ export class DnD4eRolls extends BaseRolls {
             { id: "save", text: i18n("MonksTokenBar.SavingThrow"), groups: savingThrow },
             { id: "skill", text: i18n("MonksTokenBar.Skill"), groups: this.config.skills }
         ].concat(this._requestoptions);
-
-        /*
-        this._defaultSetting = foundry.utils.mergeObject(this._defaultSetting, {
-            stat1: "defences.ac.value",
-            stat2: "skills.prc.total"
-        });*/
     }
 
     get _supportedSystem() {

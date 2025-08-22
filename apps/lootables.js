@@ -1,6 +1,8 @@
 import { i18n, log, MonksTokenBar, setting, warn } from "../monks-tokenbar.js";
+import { ApplicationSheetConfig } from "./sheet-configure.js";
+const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api
 
-export class LootablesApp extends Application {
+export class LootablesApp extends HandlebarsApplicationMixin(ApplicationV2) {
     constructor(entity, options) {
         super(options);
 
@@ -13,6 +15,12 @@ export class LootablesApp extends Application {
         this.entityName = "";
 
         let tokens = [];
+        this.entries = [];
+        this.noitems = [];
+        this.hasitems = [];
+
+        let that = this;
+
         if (entity != undefined && entity instanceof Combat) {
             tokens = entity.combatants.filter(c => {
                 return c.actor?.token && c.token?.disposition != 1 && (setting("only-use-defeated") ? c.defeated : true)
@@ -21,19 +29,21 @@ export class LootablesApp extends Application {
             });
             this.combat = entity;
         } else {
-            tokens = entity || canvas.tokens.controlled.filter(t => t.actor != undefined);
+            tokens = entity || canvas.tokens.controlled.filter((t) => {
+                if (t.actor == undefined) {
+                    that.noitems.push(t.name);
+                }
+                return t.actor != undefined;
+            });
             if (tokens != undefined && !$.isArray(tokens))
                 tokens = [tokens];
         }
 
         this.currency = MonksTokenBar.system.getCurrency().reduce((a, v) => ({ ...a, [v.id || v]: 0 }), {});
 
-        this.entries = [];
-        this.noitems = [];
-
         for (let t of tokens) {
             let document = t.document || t;
-            let token = t instanceof Token ? t : canvas.tokens.get(t.id);
+            let token = t instanceof foundry.canvas.placeables.Token ? t : canvas.tokens.get(t.id);
             let entry = {
                 id: document.id,
                 token: token,
@@ -66,14 +76,14 @@ export class LootablesApp extends Application {
                         return false;
 
                     if (item.type == 'weapon') {
-                        result = getProperty(item, "system.weaponType") != 'natural' && getProperty(item, "system.type.value") != 'natural';
+                        result = foundry.utils.getProperty(item, "system.weaponType") != 'natural' && foundry.utils.getProperty(item, "system.type.value") != 'natural';
                     }
                     // Equipment's fine, unless it's natural armor
                     else if (item.type == 'equipment') {
                         if (!item.system.armor)
                             result = true;
                         else
-                            result = getProperty(item, "system.armor.type") != 'natural' && getProperty(item, "system.armor.type.value") != 'natural';
+                            result = foundry.utils.getProperty(item, "system.armor.type") != 'natural' && foundry.utils.getProperty(item, "system.armor.type.value") != 'natural';
                     } else
                         result = !(['class', 'spell', 'feat', 'action', 'lore', 'melee', 'condition', 'spellcastingEntry', 'effect'].includes(item.type));
 
@@ -102,6 +112,8 @@ export class LootablesApp extends Application {
                 for (let item of entry.items) {
                     item.count = item.quantity;
                 }
+                if (!this.hasitems.find(e => e == entry))
+                    this.hasitems.push(entry);
             } else if (!this.noitems.find(e => e == entry.name)) {
                 this.noitems.push(entry.name);
             }
@@ -119,7 +131,7 @@ export class LootablesApp extends Application {
                 }
             }
         };
-        this.entries = this.entries.sort((a, b) => { return a.name.localeCompare(b.name); });
+        this.hasitems = this.hasitems.sort((a, b) => { return a.name.localeCompare(b.name); });
 
         /*
         if (this.combat && this.combat.getFlag("monks-enhanced-journal", "encounterid")) {
@@ -128,23 +140,66 @@ export class LootablesApp extends Application {
         */
 
         if (setting("auto-gold-cr")) {
-            this.calcGold();
+            this.constructor.calcGold.call(this);
         }
     }
 
-    static get defaultOptions() {
-        return foundry.utils.mergeObject(super.defaultOptions, {
-            id: "lootables",
-            title: i18n("MonksTokenBar.Lootables"),
-            template: "./modules/monks-tokenbar/templates/lootables.html",
-            width: 500,
-            popOut: true,
-            dragDrop: [{ dropSelector: ".dialog-content" }],
-            scrollY: [".entry-list"]
-        });
+    static DEFAULT_OPTIONS = {
+        id: "lootables",
+        tag: "form",
+        classes: ["sheet", "lootables"],
+        window: {
+            contentClasses: ["standard-form"],
+            icon: "fa-solid fa-dolly-flatbed",
+            resizable: false,
+            title: "MonksTokenBar.Lootables",
+            controls: [{
+                icon: "fa-solid fa-gear",
+                label: "SHEETS.ConfigureSheet",
+                action: "configureSheet",
+                visible: true
+            }]
+        },
+        actions: {
+            assignLoot: LootablesApp.convert,
+            calculateGold: LootablesApp.calcGold,
+            configureSheet: LootablesApp.onConfigureSheet,
+            deleteEntry: LootablesApp.deleteEntry,
+            resetLoot: LootablesApp.resetLoot,
+            deleteLoot: LootablesApp.deleteLoot
+        },
+        position: {
+            width: 500
+        }
+    };
+
+    static PARTS = {
+        body: { template: "./modules/monks-tokenbar/templates/lootables/lootables.html" },
+        footer: { template: "templates/generic/form-footer.hbs" }
+    };
+
+    _initializeApplicationOptions(options) {
+        options = super._initializeApplicationOptions(options);
+        const { colorScheme } = game.settings.get("core", "uiConfig");
+        const theme = game.user.getFlag("monks-tokenbar", "themes") || {};
+        options.classes.push("themed", `theme-${theme.lootables || colorScheme.applications || "dark"}`);
+        return options;
     }
 
-    async getData(options) {
+    async _preparePartContext(partId, context, options) {
+        context = await super._preparePartContext(partId, context, options);
+        switch (partId) {
+            case "body":
+                this._prepareBodyContext(context, options);
+                break;
+            case "footer":
+                context.buttons = this.prepareButtons();
+        }
+
+        return context;
+    }
+
+    async _prepareBodyContext(context, options) {
         let notes = "";
         let lootsheet = setting('loot-sheet');
         let lootentity = setting('loot-entity');
@@ -189,7 +244,7 @@ export class LootablesApp extends Application {
             'everyone': game.i18n.localize("MonksTokenBar.Everyone"),
         }
 
-        return {
+        return foundry.utils.mergeObject(context, {
             hasLootable,
             notes,
             createEntity,
@@ -200,7 +255,8 @@ export class LootablesApp extends Application {
             placeholder: this.getLootableName(entity),
             currency: this.currency,
             entries: this.entries,
-            noitems: this.noitems.join(", "),
+            hasitems: this.hasitems,
+            noitems: this.noitems,
             actionText: (convertEntity ? i18n('MonksTokenBar.ConvertToLootable') : (createEntity ? i18n('MonksTokenBar.TransferToNewLootable') : i18n('MonksTokenBar.TransferToLootable'))),
             lootEntity: this.lootEntity,
             openLoot: this.openLoot,
@@ -209,7 +265,31 @@ export class LootablesApp extends Application {
             clearItems: this.clearItems,
             entityName: this.entityName,
             openLootOptions
-        };
+        });
+    }
+
+    prepareButtons() {
+        return [
+            {
+                type: "button",
+                icon: "fas fa-receipt",
+                label: "Create New Lootable",
+                action: "assignLoot"
+            }
+        ];
+    }
+
+    static onConfigureSheet(event) {
+        event.stopPropagation(); // Don't trigger other events
+        if (event.detail > 1) return; // Ignore repeated clicks
+
+        new ApplicationSheetConfig({
+            type: "lootables",
+            position: {
+                top: this.position.top + 40,
+                left: this.position.left + ((this.position.width - 500) / 2)
+            }
+        }).render({ force: true });
     }
 
     isLootActor(lootsheet) {
@@ -239,26 +319,20 @@ export class LootablesApp extends Application {
         };
     }
 
-    async activateListeners(html) {
-        super.activateListeners(html);
+    async _onRender(context, options) {
+        await super._onRender(context, options);
 
-        $('.dialog-button.convert-to-lootable', html).click(this.convert.bind(this));
-        $('.reset-loot', html).click(this.resetLoot.bind(this));
-        $('.delete-loot', html).click(this.deleteLoot.bind(this));
-        $('.loot-item-quantity', html).blur(this.updateLoot.bind(this));
+        var that = this;
 
-        $('.delete-entry', html).click(this.deleteEntry.bind(this));
+        $('.loot-item-quantity', this.element).blur(this.updateLoot.bind(this));
+        $('[name="create-canvas-object"]', this.element).click(() => { this.createCanvasObject = $('[name="create-canvas-object"]', this.element).prop("checked"); });
+        $('[name="hide-combatants"]', this.element).click(() => { this.hideCombatants = $('[name="hide-combatants"]', this.element).prop("checked"); });
+        $('[name="open-loot"]', this.element).change(() => { this.openLoot = $('[name="open-loot"]', this.element).val(); });
+        $('[name="clear-items"]', this.element).click(() => { this.clearItems = $('[name="clear-items"]', this.element).prop("checked"); });
+        $('[name="entity-name"]', this.element).blur(() => { this.entityName = $('[name="entity-name"]', this.element).val(); });
+        $('[name="loot-entity"]', this.element).on("change", this.changeEntity.bind(this));
 
-        $('[name="create-canvas-object"]', html).click(() => { this.createCanvasObject = $('[name="create-canvas-object"]', html).prop("checked"); });
-        $('[name="hide-combatants"]', html).click(() => { this.hideCombatants = $('[name="hide-combatants"]', html).prop("checked"); });
-        $('[name="open-loot"]', html).change(() => { this.openLoot = $('[name="open-loot"]', html).val(); });
-        $('[name="clear-items"]', html).click(() => { this.clearItems = $('[name="clear-items"]', html).prop("checked"); });
-        $('[name="entity-name"]', html).blur(() => { this.entityName = $('[name="entity-name"]', html).val(); });
-        $('[name="loot-entity"]', html).on("change", this.changeEntity.bind(this));
-
-        $('.add-gold', html).click(this.calcGold.bind(this));
-
-        $(".currency-value", html).blur((event) => { this.currency[event.currentTarget.name] = $(event.currentTarget).val(); });
+        $(".currency-value", this.element).blur((event) => { this.currency[event.currentTarget.name] = $(event.currentTarget).val(); });
 
         let sheet = setting('loot-sheet');
 
@@ -274,20 +348,30 @@ export class LootablesApp extends Application {
         let canHideCombatants = !convertEntity || sheet == "pf2e";
 
         let hasLootable = sheet != 'none' && MonksTokenBar.getLootSheetOptions()[sheet] != undefined;
-        $('[name="loot-entity"]', html).closest('.form-group').toggle(hasLootable);
-        $('[name="open-loot"]', html).closest('.form-group').toggle(hasLootable && !convertEntity);
-        $('[name="clear-items"]', html).closest('.form-group').toggle(hasLootable && canClearItems);
-        $('[name="entity-name"]', html).closest('.form-group').toggle(hasLootable && createEntity && !convertEntity);
-        $('[name="create-canvas-object"]', html).closest('.form-group').toggle(hasLootable && canCreateObject);
-        $('[name="hide-combatants"]', html).closest('.form-group').toggle(hasLootable && canHideCombatants);
+        $('[name="loot-entity"]', this.element).closest('.form-group').toggle(hasLootable);
+        $('[name="open-loot"]', this.element).closest('.form-group').toggle(hasLootable && !convertEntity);
+        $('[name="clear-items"]', this.element).closest('.form-group').toggle(hasLootable && canClearItems);
+        $('[name="entity-name"]', this.element).closest('.form-group').toggle(hasLootable && createEntity && !convertEntity);
+        $('[name="create-canvas-object"]', this.element).closest('.form-group').toggle(hasLootable && canCreateObject);
+        $('[name="hide-combatants"]', this.element).closest('.form-group').toggle(hasLootable && canHideCombatants);
 
-        let ctrl = $('[name="loot-entity"]', html);
+        let ctrl = $('[name="loot-entity"]', this.element);
         let collection = sheet == "pf2e" ? { documentName: "Actor", contents: game.actors.contents.filter(a => a.type == "party"), preventCreate: true } : (sheet == "monks-enhanced-journal" ? game.journal : game.actors);
-        let list = await MonksTokenBar.lootEntryListing(ctrl, html, collection, this.lootEntity);
+        let list = await MonksTokenBar.lootEntryListing(ctrl, this.element, collection, this.lootEntity);
         $('[data-uuid="convert"]', list).remove();
         list.insertAfter(ctrl);
         list.toggleClass("disabled", this.lootEntity == "convert");
         ctrl.hide();
+
+        new foundry.applications.ux.DragDrop.implementation({
+            dropSelector: ".entry-list",
+            permissions: {
+                drop: this._canDragDrop.bind(this)
+            },
+            callbacks: {
+                drop: this._onDrop.bind(this)
+            }
+        }).bind(this.element);
 
         this.setPosition({ height: "auto" });
     };
@@ -296,6 +380,7 @@ export class LootablesApp extends Application {
         this.lootEntity = $(event.currentTarget).val();
 
         let lootsheet = setting('loot-sheet');
+        let lootentity = setting('loot-entity');
 
         let entity;
         try {
@@ -314,7 +399,7 @@ export class LootablesApp extends Application {
         $('[name="entity-name"]', this.element).closest('.form-group').toggle(createEntity && !convertEntity);
     }
 
-    convert() {
+    static convert() {
         this.convertToLootable({
             name: this.entityName,
             clear: this.clearItems,
@@ -327,19 +412,20 @@ export class LootablesApp extends Application {
         this.close();
     }
 
-    deleteEntry(event) {
-        let elem = event.currentTarget.closest(".entry");
+    static deleteEntry(event, target) {
+        let elem = target.closest(".entry");
         let entryId = elem.dataset.entryId;
 
         this.entries.findSplice(e => e.id == entryId);
+        this.hasitems.findSplice(e => e.id == entryId);
         $(elem).remove();
         this.setPosition({ height: "auto" });
     }
 
-    resetLoot(event) {
-        let itemElem = event.currentTarget.closest(".item");
+    static resetLoot(event, target) {
+        let itemElem = target.closest(".item");
         let itemId = itemElem.dataset.itemId;
-        let entryId = event.currentTarget.closest(".entry").dataset.entryId;
+        let entryId = target.closest(".entry").dataset.entryId;
 
         let entry = this.entries.find(e => e.id == entryId);
         let item = entry.items.find(i => i.id == itemId);
@@ -348,10 +434,10 @@ export class LootablesApp extends Application {
         $(itemElem).removeClass("notincluded");
     }
 
-    deleteLoot(event) {
-        let itemElem = event.currentTarget.closest(".item");
+    static deleteLoot(event, target) {
+        let itemElem = target.closest(".item");
         let itemId = itemElem.dataset.itemId;
-        let entryId = event.currentTarget.closest(".entry").dataset.entryId;
+        let entryId = target.closest(".entry").dataset.entryId;
 
         let entry = this.entries.find(e => e.id == entryId);
         if (entry.id == "") {
@@ -376,7 +462,7 @@ export class LootablesApp extends Application {
         $(itemElem).toggleClass("notincluded", item.quantity == 0);
     }
 
-    calcGold() {
+    static calcGold() {
         let lootingUsers = game.users.contents.filter(user => { return user.role >= 1 && user.role <= 2 });
         this.currency.gp = 0;
         for (let entry of this.entries) {
@@ -397,15 +483,13 @@ export class LootablesApp extends Application {
         this.render(true);
     }
 
+    _canDragDrop(selector) {
+        return true;
+    }
+
     async _onDrop(event) {
         // Try to extract the data
-        let data;
-        try {
-            data = JSON.parse(event.dataTransfer.getData('text/plain'));
-        }
-        catch (err) {
-            return false;
-        }
+        let data = foundry.applications.ux.TextEditor.implementation.getDragEventData(event);
 
         if (this.lootEntity == "convert")
             return ui.notifications.warn("Cannot drop items when converting ");
@@ -416,6 +500,7 @@ export class LootablesApp extends Application {
                 id: "",
                 name: "",
                 quantity: 1,
+                img: "icons/svg/chest.svg",
                 items: []
             };
 
@@ -424,7 +509,8 @@ export class LootablesApp extends Application {
                 entry = _entry;
             } else {
                 this.entries.push(entry);
-                this.entries = this.entries.sort((a, b) => { return a.name.localeCompare(b.name); });
+                this.hasitems.push(entry);
+                this.hasitems = this.hasitems.sort((a, b) => { return a.name.localeCompare(b.name); });
             }
 
             let i = data.data || await fromUuid(data.uuid);
@@ -447,7 +533,7 @@ export class LootablesApp extends Application {
                 entry.items = entry.items.sort((a, b) => { return a.name.localeCompare(b.name); });
             }
 
-            this.render(true);
+            this.render({ force: true });
         }/* else if (data.type == "Actor") {
             let entry = {
                 id: t.id,
@@ -473,14 +559,14 @@ export class LootablesApp extends Application {
                     // Weapons are fine, unless they're natural
                     let result = false;
                     if (item.type == 'weapon') {
-                        result = getProperty(item, "system.weaponType")" != 'natural' && getProperty(item, "system.type.value") != 'natural';
+                        result = foundry.utils.getProperty(item, "system.weaponType")" != 'natural' && foundry.utils.getProperty(item, "system.type.value") != 'natural';
                     }
                     // Equipment's fine, unless it's natural armor
                     else if (item.type == 'equipment') {
                         if (!item.system.armor)
                             result = true;
                         else
-                            result = getProperty(item, "system.armor.type")" != 'natural' && getProperty(item, "system.type.value") != 'natural';
+                            result = foundry.utils.getProperty(item, "system.armor.type")" != 'natural' && foundry.utils.getProperty(item, "system.type.value") != 'natural';
                     } else
                         result = !(['class', 'spell', 'feat', 'action', 'lore'].includes(item.type));
 
@@ -804,7 +890,7 @@ export class LootablesApp extends Application {
             let items = [];
 
             for (let entry of this.entries) {
-                for (let token of entry.tokens) {
+                for (let token of (entry.tokens || [])) {
                     ptAvg.x += token.x;
                     ptAvg.y += token.y;
                     ptAvg.count++;
@@ -1058,7 +1144,7 @@ export class LootablesApp extends Application {
         //if (newItems.length > 0)
         //    await Item.create(newItems, { parent: actor });
         await actor.update(actorData); /*.then((token) => {
-            //if (app._state === Application.RENDER_STATES.CLOSED)
+            //if (app.state === Application.RENDER_STATES.CLOSED)
             //    token.actor.sheet.render(true);
         });*/
 
@@ -1077,10 +1163,10 @@ export class LootablesApp extends Application {
         actor._sheet = null;
 
         let waitClose = 40;
-        while (app._state !== Application.RENDER_STATES.CLOSED && waitClose-- > 0) {
+        while (app.state !== Application.RENDER_STATES.CLOSED && waitClose-- > 0) {
             await new Promise((r) => setTimeout(r, 100));
         }
-        if (app._state === Application.RENDER_STATES.CLOSED)
+        if (app.state === Application.RENDER_STATES.CLOSED)
             actor.sheet.render(true);
     }
 }

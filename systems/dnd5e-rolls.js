@@ -125,7 +125,7 @@ export class DnD5eRolls extends BaseRolls {
         for (let entry of entries) {
             for (let item of (entry.token.actor?.items || [])) {
                 if (item.type == 'tool') {
-                    let sourceID = item.getFlag("core", "sourceId") || MonksTokenBar.slugify(item.name);
+                    let sourceID = item._stats.compendiumSource || MonksTokenBar.slugify(item.name);
                     if (tools[sourceID] == undefined) {
                         tools[sourceID] = { label: item.name, count: 1 };
                     } else {
@@ -168,20 +168,28 @@ export class DnD5eRolls extends BaseRolls {
         let options = { rollMode: rollMode, fastForward: fastForward, chatMessage: false, fromMars5eChatCard: true, event: e, advantage: e.advantage, disadvantage: e.disadvantage };
         let context = actor;
         let sysRequest = request.key;
+        let config = { event: e };
+        let dialogConfig = { configure: !fastForward };
+        const speaker = ChatMessage.getSpeaker({ actor });
+        let messageConfig = { create: false, data: { speaker } }
         if (request.type == 'ability') {
-            rollfn = (actor.getFunction ? actor.getFunction("rollAbilityTest") : actor.rollAbilityTest);
+            rollfn = actor.rollAbilityCheck;
+            config.ability = request.key;
         }
         else if (request.type == 'save') {
-            rollfn = actor.rollAbilitySave;
+            rollfn = actor.rollSavingThrow;
+            config.ability = request.key;
         }
         else if (request.type == 'skill') {
             rollfn = actor.rollSkill;
+            config.skill = request.key;
         } else if (request.type == 'tool') {
             let item = actor.items.find(i => { return i.getFlag("core", "sourceId") == request.key || MonksTokenBar.slugify(i.name) == request.key; });
             if (item != undefined) {
                 context = item;
                 sysRequest = options;
                 rollfn = item.rollToolCheck;
+                config.tool = item;
             } else
                 return { id: id, error: true, msg: i18n("MonksTokenBar.ActorNoTool") };
         } else {
@@ -198,7 +206,7 @@ export class DnD5eRolls extends BaseRolls {
 
         if (rollfn != undefined) {
             try {
-                return rollfn.call(context, sysRequest, options).then((roll) => {
+                return rollfn.call(context, config, dialogConfig, messageConfig).then((roll) => {
                     return callback(roll);
                 }).catch((e) => {
                     console.error(e);

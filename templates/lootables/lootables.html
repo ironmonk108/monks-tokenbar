@@ -1,0 +1,92 @@
+<form class="monks-tokenbar flexcol">
+    <div class="dialog-content">
+        {{#if hasLootable}}
+        <section class="sheet-header">
+            <div class="form-group">
+                <label>{{localize 'MonksTokenBar.loot-entity.name'}}</label>
+                <input type="text" name="loot-entity" value="lootEntity" />
+            </div>
+            <div class="form-group" style="{{#unless createEntity}}display: none;{{/unless}}">
+                <label>{{localize 'MonksTokenBar.CreateEntityName'}}</label>
+                <input type="text" id="entity-name" name="entity-name" placeholder="{{placeholder}}" value="{{entityName}}" />
+            </div>
+            <div class="form-group" style="{{#unless canClearItems}}display: none;{{/unless}}">
+                <label>{{localize 'MonksTokenBar.ClearCurrentItems'}}</label>
+                <input type="checkbox" id="clear-items" name="clear-items" {{checked clearItems}} />
+            </div>
+            <div class="form-group" style="{{#unless canCreateObject}}display: none;{{/unless}}">
+                <label>{{localize 'MonksTokenBar.create-canvas-object.name'}}</label>
+                <input type="checkbox" id="create-canvas-object" name="create-canvas-object" {{checked createCanvasObject}} />
+            </div>
+            <div class="form-group" style="{{#unless canHideCombatants}}display: none;{{/unless}}">
+                <label>{{localize 'MonksTokenBar.hide-combatants.name'}}</label>
+                <input type="checkbox" id="hide-combatants" name="hide-combatants" {{checked hideCombatants}} />
+            </div>
+            <div class="form-group">
+                <label>{{localize 'MonksTokenBar.open-loot.name'}}</label>
+                <select id="open-loot" name="open-loot">
+                    {{selectOptions openLootOptions selected=openLoot localize=true}}
+                </select>
+            </div>
+        </section>
+        {{else}}
+        <div class="no-lootables">
+            You currently do not have lootables enabled in the settings.
+        </div>
+        {{/if}}
+        {{#if (and currency (not convertEntity))}}
+        <hr />
+        <div class="flexrow" style="margin: 4px 0px;">
+            {{#each currency}}
+            <div class="flexrow" style="flex-direction:row-reverse;">
+                <input type="text" class="currency-value" name="{{@key}}" style="text-align: right; max-width: 70px;" value="{{this}}" />
+                <span style="text-align: right; line-height: 24px; margin-right: 8px;">{{@key}}</span>
+            </div>
+            {{/each}}
+            <button type="button" class="icon fas fa-dollar-sign" data-tooltip="Calculate gold based on CR" data-action="calculateGold" style="margin-left: 10px;"></button>
+        </div>
+        {{/if}}
+        {{#if hasitems}}
+        <hr />
+        <ul class="entry-list scrollable">
+            {{#each hasitems as |entry i|}}
+            <li class="flexrow entry" style="padding: 4px 0px" data-entry-id="{{entry.id}}">
+                <div style="flex: 0 0 110px; margin-right: 4px; overflow: hidden;position: relative;" title="{{entry.name}}">
+                    <div class="loot-entry-image" style="background-image: url('{{entry.img}}')">
+                        <video width="30" height="30"><source src="{{entry.img}}" /></video>
+                    </div>
+                    <span class="loot-entry-name">
+                        {{entry.name}}
+                    </span>
+                    {{#if (gt entry.quantity 1)}}<div class="entry-quantity">&times;{{entry.quantity}}</div>{{/if}}
+                    <button type="button" class="inline-control icon fas fa-trash" data-action="deleteEntry" data-tooltip="Delete Entry"></button>
+                </div>
+                <ul style="padding: 0px; margin: 0px;">
+                    {{#each entry.items as | item j |}}
+                    <li class="flexrow item" data-item-id="{{item.id}}">
+                        <img class="loot-item-image" src="{{item.img}}" onerror="$(this).css({visibility:'hidden'});" />
+                        <span class="loot-item-name">{{item.name}}{{#if (gt item.sysQty 1)}} <small>(In qty of {{item.sysQty}})</small>{{/if}}</span>
+                        <input class="loot-item-quantity" type="text" name="tokens.{{../id}}.items.{{item._id}}.quantity" value="{{item.quantity}}" />
+                        <div class="flexrow" style="flex: 0 0 50px;margin: 0px 4px;line-height: 25px;flex-wrap:nowrap;">
+                            <button type="button" class="inline-control icon fas fa-refresh" data-action="resetLoot" data-tooltip="Reset Loot"></button>
+                            <button type="button" class="inline-control icon fas fa-trash" data-action="deleteLoot" data-tooltip="Delete Loot"></button>
+                        </div>
+                    </li>
+                    {{/each}}
+                </ul>
+            </li>
+            {{/each}}
+        </ul>
+        {{/if}}
+
+        {{#if noitems}}
+        <hr />
+        <p class="notes no-item-note">Creatures with no items</p>
+        <div class="no-item-list">
+            {{#each noitems}}
+            <div class="no-item-entry">{{this}}</div>
+            {{/each}}
+        </div>
+        {{/if}}
+    </div>
+</form>

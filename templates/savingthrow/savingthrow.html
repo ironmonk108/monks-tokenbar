@@ -1,0 +1,78 @@
+<div class="dialog-content">
+    <form style="height: 100%;">
+        <div class="flexrow" style="height: 100%;">
+            <div class="flexcol" style="padding-right: 10px; align-self: flex-start;">
+                <section class="sheet-header">
+                    <div class="form-group" style="flex-grow: 0;">
+                        <label>{{localize dclabel}}</label>
+                        <div class="flexrow" style="padding-right:8px;">
+                            <input type="number" step="any" id="monks-tokenbar-savingdc" value="{{dc}}" style="flex: 0 0 50px;text-align:right;" />
+                            <label style="margin-left: 16px; flex: 0 0 50px;">Show</label>
+                            <input type="checkbox" id="monks-tokenbar-showdc" {{checked showdc}} />
+                        </div>
+                    </div>
+                    <div class="form-group" style="flex-grow: 0;">
+                        <label>{{localize 'MonksTokenBar.RollMode'}}</label>
+                        <select id="savingthrow-rollmode">
+                            <option value="roll" selected="">{{localize 'MonksTokenBar.PublicRoll'}}</option>
+                            <option value="gmroll">{{localize 'MonksTokenBar.PrivateGMRoll'}}</option>
+                            <option value="blindroll">{{localize 'MonksTokenBar.BlindGMRoll'}}</option>
+                            <option value="selfroll">{{localize 'MonksTokenBar.SelfRoll'}}</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex-grow: 0;">
+                        <label>{{localize 'MonksTokenBar.HideNPCName'}}</label>
+                        <input id="monks-tokenbar-hidenpc" type="checkbox" {{#if hidenpcname}} checked{{/if}} />
+                    </div>
+                    <div class="form-group" style="flex-grow: 0;">
+                        <label>{{localize 'MonksTokenBar.Flavor'}}</label>
+                        <input type="text" id="monks-tokenbar-flavor" value="{{flavor}}" />
+                    </div>
+                </section>
+                <div class="player-group">
+                    <header>
+                        <div class="name">{{localize 'MonksTokenBar.Actors'}}</div>
+                        <div class="controls flexrow">
+                            <button type="button" class="inline-control icon fas fa-users" data-tooltip="{{localize 'MonksTokenBar.AddPlayers'}}" data-action="addPlayers"></button>
+                            <button type="button" class="inline-control icon fas fa-child" data-tooltip="{{localize 'MonksTokenBar.AddTokenbar'}}" data-action="addTokenbar"></button>
+                            <button type="button" class="inline-control icon fas fa-bolt" data-tooltip="{{localize 'MonksTokenBar.AddLastTokens'}}" data-action="addLastTokens"></button>
+                            <button type="button" class="inline-control icon fas fa-square-plus" data-tooltip="{{localize 'MonksTokenBar.AddActor'}}" data-action="addActor"></button>
+                            <button type="button" class="inline-control icon fas fa-trash-alt" data-tooltip="{{localize 'MonksTokenBar.ClearAll'}}" data-action="clearTokens"></button>
+                        </div>
+                    </header>
+
+                    <ol class="scrollable actor-list">
+                        {{#each entries as |entry i|}}
+                        <li class="actor" data-token-id="{{entry.id}}" data-index="{{i}}" draggable="false">
+                            <div class="name">
+                                <div class="player-image" style="background-image: url('{{entry.img}}')">
+                                    <video width="30" height="30"><source src="{{entry.img}}" /></video>
+                                </div>
+                                <span>
+                                    {{entry.name}}
+                                </span>
+                            </div>
+
+                            <div class="controls">
+                                <button type="button" class="inline-control icon fas fa-trash" data-tooltip="{{localize 'MonksTokenBar.RemoveActor'}}" data-action="removeToken"></button>
+                            </div>
+                        </li>
+                        {{/each}}
+                    </ol>
+                </div>
+            </div>
+            <div class="request-roll" style="height: 100%; overflow-y: auto; overflow-x: hidden;line-height: 17px;">
+                {{#each options}}
+                {{#if this.text}}
+                <div class="request-header">{{localize this.text}}</div>
+                {{/if}}
+                <div class="request-grid {{this.cssclass}}">
+                    {{#each this.groups as |name key|}}
+                    <div class="request-option" data-type="{{../id}}" data-key="{{key}}" data-action="selectOption">{{localize name}}</div>
+                    {{/each}}
+                </div>
+                {{/each}}
+            </div>
+        </div>
+    </form>
+</div>

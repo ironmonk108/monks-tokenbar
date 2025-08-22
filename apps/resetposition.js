@@ -1,21 +1,20 @@
 import { MonksTokenBar, log, error, i18n, setting } from "../monks-tokenbar.js";
+const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api
 
-export class ResetPosition extends FormApplication {
-    constructor(object, options) {
-        super(object, options);
-    }
+export class ResetPosition extends HandlebarsApplicationMixin(ApplicationV2) {
 
-    static get defaultOptions() {
-        const options = super.defaultOptions;
-        options.title = '';
-        options.id = 'tokenbar-resetposition';
-        options.template = 'modules/monks-tokenbar/templates/resetposition.html';
-        options.closeOnSubmit = true;
-        options.popOut = true;
-        options.width = 1;
-        options.height = 1;
-        return options;
-    }
+    static DEFAULT_OPTIONS = {
+        id: "tokenbar-resetposition",
+        tag: "div",
+        sheetConfig: false,
+        position: { width: 1, height: 1 },
+    };
+
+    static PARTS = {
+        form: {
+            template: "modules/monks-tokenbar/templates/resetposition.html"
+        }
+    };
 
     static async resetPosition(app) {
         await game.user.unsetFlag("monks-tokenbar", "position");

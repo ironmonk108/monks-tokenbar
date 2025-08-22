@@ -245,7 +245,7 @@ export class PF2eRolls extends BaseRolls {
     async checkXP(actor) {
         if (setting("send-levelup-whisper") && game.user.isTheGM && actor.system.details.xp.value >= actor.system.details.xp.max) {
             const level = parseInt(foundry.utils.getProperty(actor, "system.details.level.value")) + 1;
-            const html = await renderTemplate("./modules/monks-tokenbar/templates/levelup.html", { level: level, name: actor.name, xp: actor.system.details.xp.value });
+            const html = await foundry.applications.handlebars.renderTemplate("./modules/monks-tokenbar/templates/levelup.html", { level: level, name: actor.name, xp: actor.system.details.xp.value });
             ChatMessage.create({
                 user: game.user.id,
                 content: html,

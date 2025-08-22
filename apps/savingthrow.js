@@ -1,6 +1,8 @@
 import { MonksTokenBar, log, i18n, setting } from "../monks-tokenbar.js";
+import { ApplicationSheetConfig } from "./sheet-configure.js";
+const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api
 
-export class SavingThrowApp extends Application {
+export class SavingThrowApp extends HandlebarsApplicationMixin(ApplicationV2) {
     constructor(entries, options = {}) {
         super(options);
 
@@ -46,17 +48,70 @@ export class SavingThrowApp extends Application {
         this.callback = options.callback;
     }
 
-    static get defaultOptions() {
-        return foundry.utils.mergeObject(super.defaultOptions, {
-            id: "requestsavingthrow",
-            title: i18n("MonksTokenBar.RequestRoll"),
-            template: "./modules/monks-tokenbar/templates/savingthrow.html",
-            width: 800,
-            popOut: true
-        });
+    static DEFAULT_OPTIONS = {
+        id: "savingthrow",
+        tag: "form",
+        classes: ["sheet", "savingthrow"],
+        sheetConfig: true,
+        window: {
+            contentClasses: ["standard-form"],
+            icon: "fas fa-tools",
+            resizable: false,
+            title: "MonksTokenBar.RequestRoll",
+            controls: [{
+                icon: "fa-solid fa-gear",
+                label: "SHEETS.ConfigureSheet",
+                action: "configureSheet",
+                visible: true
+            }]
+        },
+        actions: {
+            saveMacro: SavingThrowApp.saveToMacro,
+            copyMacro: SavingThrowApp.copyMacro,
+            requestRollPlusRoll: SavingThrowApp.requestRollPlusRoll,
+            requestRoll: SavingThrowApp.requestRoll,
+            addPlayers: SavingThrowApp.addPlayers,
+            addTokenbar: SavingThrowApp.addTokenbar,
+            addLastTokens: SavingThrowApp.addLastTokens,
+            addActor: SavingThrowApp.addActor,
+            clearTokens: SavingThrowApp.clearTokens,
+            removeToken: SavingThrowApp.removeToken,
+            selectOption: SavingThrowApp.selectOption,
+            configureSheet: SavingThrowApp.onConfigureSheet,
+
+        },
+        position: {
+            width: 800
+        }
+    };
+
+    static PARTS = {
+        body: { template: "./modules/monks-tokenbar/templates/savingthrow/savingthrow.html" },
+        footer: { template: "templates/generic/form-footer.hbs" }
+    };
+
+    _initializeApplicationOptions(options) {
+        options = super._initializeApplicationOptions(options);
+        const { colorScheme } = game.settings.get("core", "uiConfig");
+        const theme = game.user.getFlag("monks-tokenbar", "themes") || {};
+        options.classes.push("themed", `theme-${theme.savingthrow || colorScheme.applications || "dark"}`);
+        return options;
     }
 
-    getData(options) {
+    async _preparePartContext(partId, context, options) {
+        context = await super._preparePartContext(partId, context, options);
+        switch (partId) {
+            case "body":
+                this._prepareBodyContext(context, options);
+                break;
+            case "footer":
+                context.buttons = this.prepareButtons();
+        }
+
+        return context;
+    }
+
+    _prepareBodyContext(context, options) {
         let dispOptions = this.requestoptions = this.baseoptions;
 
         if (this.entries.length > 0) {
@@ -73,12 +128,14 @@ export class SavingThrowApp extends Application {
         }
 
         let entries = this.entries.map(e => {
-            let img = e.token?.document?.texture?.src || e.token?.img;
-
-            return foundry.utils.mergeObject({ img }, e);
+            return {
+                id: e.token.id,
+                name: e.token.name,
+                img: e.token?.document?.texture?.src || e.token?.img
+            }
         });
 
-        return {
+        return foundry.utils.mergeObject(context, {
             entries,
             rollmode: this.rollmode,
             flavor: this.flavor,
@@ -87,7 +144,51 @@ export class SavingThrowApp extends Application {
             hidenpcname: this.hidenpcname,
             dclabel: MonksTokenBar.system.dcLabel,
             options: dispOptions
-        };
+        });
+    }
+
+    prepareButtons() {
+        return [
+            {
+                type: "button",
+                icon: "fas fa-save",
+                label: "MonksTokenBar.SaveToMacro",
+                action: "saveMacro",
+                cssClass: "small-button"
+            },
+            {
+                type: "button",
+                icon: "fas fa-copy",
+                label: "MonksTokenBar.CopyMacro",
+                action: "copyMacro",
+                cssClass: "small-button"
+            },
+            {
+                type: "button",
+                icon: "fas fa-dice",
+                label: "MonksTokenBar.RequestWithRoll",
+                action: "requestRollPlusRoll"
+            },
+            {
+                type: "button",
+                icon: "fas fa-receipt",
+                label: "MonksTokenBar.Request",
+                action: "requestRoll"
+            }
+        ];
+    }
+
+    static onConfigureSheet(event) {
+        event.stopPropagation(); // Don't trigger other events
+        if (event.detail > 1) return; // Ignore repeated clicks
+
+        new ApplicationSheetConfig({
+            type: "savingthrow",
+            position: {
+                top: this.position.top + 40,
+                left: this.position.left + ((this.position.width - 800) / 2)
+            }
+        }).render({ force: true });
     }
 
     async close(options = {}) {
@@ -107,12 +208,12 @@ export class SavingThrowApp extends Application {
         let failed = [];
         tokens = tokens.filter(t => {
             //don't add this token a second time
-            if (t.actor == undefined) {
+            if (t instanceof Token && t.actor == undefined) {
                 failed.push(t.name);
                 return false;
             }
             if (this.entries.some((e) => {
-                return e.token.actor.id == t.actor.id;
+                return e.token.actor.id == (t.actor?.id || t.id);
             }))
                 return false;
             return true;
@@ -127,68 +228,77 @@ export class SavingThrowApp extends Application {
         this.render(true);
         window.setTimeout(() => { this.setPosition({ height: 'auto' }); }, 100);
     }
-    changeTokens(e) {
-        let type = e.target.dataset.type;
-        switch (type) {
-            case 'tokenbar':
-                this.addToken(game.MonksTokenBar.TokenBar().entries.map(e => {
-                    return e.token?._object || e.actor;
-                }));
-                break;
-            case 'player':
-                let playerTokens = canvas.tokens.placeables.filter(t => {
-                    let include = t.document.getFlag('monks-tokenbar', 'include');
-                    include = (include === true ? 'include' : (include === false ? 'exclude' : include || 'default'));
-                    return (t.actor != undefined && ((t.actor?.hasPlayerOwner && t.document.disposition == 1 && include != 'exclude') || include === 'include'));
-                });
-                // filter by unique actor
-                playerTokens = playerTokens.filter((t, i) => playerTokens.findIndex(t2 => t2.actor.id == t.actor.id) == i);
-                this.entries = MonksTokenBar.getTokenEntries(playerTokens);
-                this.render(true);
-                break;
-            case 'last':
-                if (SavingThrow.lastTokens) {
-                    this.entries = SavingThrow.lastTokens.map(e => {
-                        let token = canvas.tokens.get(e.tokenId);
-                        if (token != undefined) {
-                            return {
-                                request: e.request,
-                                keys: e.keys,
-                                fastForward: e.fastForward,
-                                token: token
-                            }
-                        }
-                        return null;
-                    }).filter(e => !!e);
-                    this.request = foundry.utils.duplicate(SavingThrow.lastRequest);
-                    this.render(true);
+
+    static addPlayers() {
+        let playerTokens = canvas.tokens.placeables.filter(t => {
+            let include = t.document.getFlag('monks-tokenbar', 'include');
+            include = (include === true ? 'include' : (include === false ? 'exclude' : include || 'default'));
+            return (t.actor != undefined && ((t.actor?.hasPlayerOwner && t.document.disposition == 1 && include != 'exclude') || include === 'include'));
+        });
+        // filter by unique actor
+        playerTokens = playerTokens.filter((t, i) => playerTokens.findIndex(t2 => t2.actor.id == t.actor.id) == i);
+        this.entries = MonksTokenBar.getTokenEntries(playerTokens);
+        this.render(true);
+    }
+
+    static addTokenbar() {
+        this.addToken(game.MonksTokenBar.TokenBar().entries.map(e => {
+            return e.token?._object || e.actor;
+        }));
+    }
+
+    static addLastTokens() {
+        if (SavingThrow.lastTokens) {
+            this.entries = SavingThrow.lastTokens.map(e => {
+                let token = canvas.tokens.get(e.tokenId);
+                if (token != undefined) {
+                    return {
+                        request: e.request,
+                        keys: e.keys,
+                        fastForward: e.fastForward,
+                        token: token
+                    }
                 }
-                break;
-            case 'actor': //toggle the select actor button
-                let controlledTokens = canvas.tokens.controlled.filter(t => t.actor != undefined);
-                if (controlledTokens.length == 0)
-                    ui.notifications.error('No tokens are currently selected');
-                else
-                    this.addToken(controlledTokens);
-                break;
-            case 'clear':
-                this.entries = [];
-                this.render(true);
-                break;
+                return null;
+            }).filter(e => !!e);
+            this.request = foundry.utils.duplicate(SavingThrow.lastRequest);
+            this.render(true);
         }
     }
 
-    removeToken(id) {
-        let idx = this.entries.findIndex(t => t.id === id);
+    static addActor() {
+        let controlledTokens = canvas.tokens.controlled.filter(t => t.actor != undefined);
+        if (controlledTokens.length == 0)
+            ui.notifications.error('No tokens are currently selected');
+        else
+            this.addToken(controlledTokens);
+    }
+
+    static clearTokens() {
+        this.entries = [];
+        this.render(true);
+    }
+
+    static removeToken(event, target) {
+        let tokenId = target.closest(".actor").dataset.tokenId;
+        let idx = this.entries.findIndex(t => t.id === tokenId);
         if (idx > -1) {
             this.entries.splice(idx, 1);
         }
-        $(`li[data-item-id="${id}"]`, this.element).remove();
+        $(`li[data-token-id="${tokenId}"]`, this.element).remove();
         this.render(true); // Need this in case the token has tools
         window.setTimeout(() => { this.setPosition({ height: 'auto' }); }, 100);
     }
 
-    async requestRoll(roll, evt) {
+    static requestRoll(event, target) {
+        this.doRequestRoll(event, false);
+    }
+
+    static requestRollPlusRoll(event, target) {
+        this.doRequestRoll(event, true);
+    }
+
+    async doRequestRoll(event, roll) {
         let msg = null;
         if (this.entries.length > 0) {
             SavingThrow.lastTokens = this.entries.map(e => {
@@ -317,7 +427,7 @@ export class SavingThrowApp extends Application {
 
             Hooks.callAll('monks-tokenbar.requestRoll', requestdata);
 
-            const html = await renderTemplate("./modules/monks-tokenbar/templates/svgthrowchatmsg.html", requestdata);
+            const html = await foundry.applications.handlebars.renderTemplate("./modules/monks-tokenbar/templates/savingthrow/chat-message.html", requestdata);
 
             delete requestdata.tokens;
             delete requestdata.canGrab;
@@ -337,7 +447,6 @@ export class SavingThrowApp extends Application {
                 }
             }
 
-            log('create chat request');
             let chatData = {
                 user: game.user.id,
                 content: html,
@@ -353,7 +462,7 @@ export class SavingThrowApp extends Application {
             foundry.utils.setProperty(chatData, "flags.monks-tokenbar", requestdata);
             msg = await ChatMessage.create(chatData, {});
             msg.mtb_callback = this.opts.callback;
-            if (setting('request-roll-sound-file') != '' && rollmode != 'selfroll' && roll !== false)
+            if (setting('request-roll-sound-file') != '' && rollmode != 'selfroll' && roll !== true)
                 MonksTokenBar.playSound(setting('request-roll-sound-file'), whisper);
             this.requestingResults = true;
             this.close();
@@ -362,7 +471,7 @@ export class SavingThrowApp extends Application {
                 msg.setFlag('monks-tokenbar', 'active-tiles', this['active-tiles']);
 
             if (roll === true)
-                SavingThrow.onRollAll('all', msg, evt);
+                SavingThrow.onRollAll('all', msg, event);
             else {
                 let ids = this.entries.filter(e => e.fastForward).map(e => e.id);
                 if (ids.length > 0)
@@ -374,35 +483,20 @@ export class SavingThrowApp extends Application {
         return msg;
     }
 
-    activateListeners(html) {
-        super.activateListeners(html);
+    async _onRender(context, options) {
+        await super._onRender(context, options);
+
         var that = this;
 
-        $('.items-header .item-controls', html).click($.proxy(this.changeTokens, this));
+        $('#monks-tokenbar-savingdc', this.element).blur(e => this.dc = $(e.currentTarget).val());
+        $('#monks-tokenbar-showdc', this.element).click(e => this.showdc = $(e.currentTarget).prop('checked'));
+        $('#monks-tokenbar-hidenpc', this.element).change(e => this.hidenpcname = $(e.currentTarget).is(':checked'));
+        $('#monks-tokenbar-flavor', this.element).blur(e => this.flavor = $(e.currentTarget).val());
+        $('#savingthrow-rollmode', this.element).change(e => this.rollmode = $(e.currentTarget).val());
 
-        $('.item-list .item', html).each(function (elem) {
-            $('.item-delete', this).click($.proxy(that.removeToken, that, this.dataset.itemId));
-        });
+        $('.request-roll .request-option', this.element).contextmenu(SavingThrowApp.changeDiceCount.bind(this));
 
-        $('.dialog-button.request', html).click($.proxy(this.requestRoll, this));
-        $('.dialog-button.request-roll', html).click($.proxy(this.requestRoll, this, true));
-        $('.dialog-button.save-macro', html).click(this.saveToMacro.bind(this));
-        $('.dialog-button.copy-macro', html).click(this.copyMacro.bind(this));
-
-        $('#monks-tokenbar-savingdc', html).blur($.proxy(function (e) {
-            this.dc = $(e.currentTarget).val();
-        }, this));
-        $('#monks-tokenbar-showdc', html).click($.proxy(function (e) {
-            this.showdc = $(e.currentTarget).prop('checked');
-        }, this));
-        $('#monks-tokenbar-hidenpc', html).change($.proxy(function (e) {
-            this.hidenpcname = $(e.currentTarget).is(':checked');
-        }, this));
-        $('#monks-tokenbar-flavor', html).blur($.proxy(function (e) {
-            this.flavor = $(e.currentTarget).val();
-        }, this));
-
-        $('.request-roll .request-option', html).each(function () {
+        $('.request-roll .request-option', this.element).each(function () {
             let type = this.dataset.type;
             let key = this.dataset.key;
 
@@ -413,65 +507,68 @@ export class SavingThrowApp extends Application {
                 }
             }
         });
-        $('.request-roll .request-option', html).click($.proxy(function (e) {
-            let target = $(e.currentTarget);
-            let type = e.currentTarget.dataset.type;
-            let key = e.currentTarget.dataset.key;
-            if (e.ctrlKey || e.metaKey) {
-                if (this.request instanceof Array) {
-                    if ((this.request.length > 1 || type == "dice") && this.request.some(r => r.type == type && r.key == key)) {
-                        if (type == 'dice') {
-                            let request = this.request.find(r => r.type == type && r.key == key);
-                            if (request) {
-                                request.count = (request.count ?? 1) + 1;
-                                if (isNaN(request.count)) request.count = 1;
-                                let parts = key.split("d");
-                                $(target).html(`${request.count}d${parts[1]}`);
-                            }
-                        } else {
-                            this.request.findSplice(r => r.type == type && r.key == key);
-                            target.removeClass('selected');
+
+        $('.small-button', this.element).each(function () {
+            $(this).attr("data-tooltip", $("span", this).html());
+            $("span", this).remove();
+        });
+    }
+
+    static selectOption(event, target) {
+        let type = target.dataset.type;
+        let key = target.dataset.key;
+        if (event.ctrlKey || event.metaKey) {
+            if (this.request instanceof Array) {
+                if ((this.request.length > 1 || type == "dice") && this.request.some(r => r.type == type && r.key == key)) {
+                    if (type == 'dice') {
+                        let request = this.request.find(r => r.type == type && r.key == key);
+                        if (request) {
+                            request.count = (request.count ?? 1) + 1;
+                            if (isNaN(request.count)) request.count = 1;
+                            let parts = key.split("d");
+                            $(target).html(`${request.count}d${parts[1]}`);
                         }
-                    } else if (!this.request.some(r => r.type == type && r.key == key)){
-                        this.request.push({ type, key });
-                        target.addClass('selected');
+                    } else {
+                        this.request.findSplice(r => r.type == type && r.key == key);
+                        $(target).removeClass('selected');
                     }
-                } else {
-                    if (this.request.type != type && this.request.key != key) {
-                        this.request = [this.request, { type, key, count: 1 }];
-                        target.addClass('selected');
-                    }
+                } else if (!this.request.some(r => r.type == type && r.key == key)) {
+                    this.request.push({ type, key });
+                    $(target).addClass('selected');
                 }
             } else {
-                this.request = [{ type, key, count: 1 }];
-                // Clear any dice counts
-                $('.request-roll .request-option[data-type="dice"]', html).each(function () {
-                    $(this).html(this.dataset.key);
-                });
-                $('.request-roll .request-option.selected', html).removeClass('selected');
-                target.addClass('selected');
-            }
-        }, this));
-        $('.request-roll .request-option', html).contextmenu($.proxy(function (e) {
-            let target = $(e.currentTarget);
-            let type = e.currentTarget.dataset.type;
-            if (type == "dice") {
-                let key = e.currentTarget.dataset.key;
-
-                let request = this.request.find(r => r.type == type && r.key == key);
-                if (request && request.count > 1) {
-                    request.count = request.count - 1;
-                    let parts = key.split("d");
-                    $(target).html(`${request.count}d${parts[1]}`);
+                if (this.request.type != type && this.request.key != key) {
+                    this.request = [this.request, { type, key, count: 1 }];
+                    $(target).addClass('selected');
                 }
             }
-        }, this));
-        $('#savingthrow-rollmode', html).change($.proxy(function (e) {
-            this.rollmode = $(e.currentTarget).val();
-        }, this));
-    };
+        } else {
+            this.request = [{ type, key, count: 1 }];
+            // Clear any dice counts
+            $('.request-roll .request-option[data-type="dice"]', this.element).each(function () {
+                $(this).html(this.dataset.key);
+            });
+            $('.request-roll .request-option.selected', this.element).removeClass('selected');
+            $(target).addClass('selected');
+        }
+    }
 
-    async copyMacro() {
+    static changeDiceCount(event) {
+        let target = $(event.currentTarget);
+        let type = event.currentTarget.dataset.type;
+        if (type == "dice") {
+            let key = event.currentTarget.dataset.key;
+
+            let request = this.request.find(r => r.type == type && r.key == key);
+            if (request && request.count > 1) {
+                request.count = request.count - 1;
+                let parts = key.split("d");
+                $(target).html(`${request.count}d${parts[1]}`);
+            }
+        }
+    }
+
+    static async copyMacro() {
         //copy the request to the clipboard
         let tokens = this.entries.map(t => { return { token: t.token.name } });
         let requests = this.request instanceof Array ? this.request : [this.request];
@@ -480,7 +577,7 @@ export class SavingThrowApp extends Application {
         ui.notifications.info(i18n("MonksTokenBar.MacroCopied"));
     }
 
-    async saveToMacro() {
+    static async saveToMacro() {
         let tokens = this.entries.map(t => { return { token: t.token.name } });
 
         let requests = this.request instanceof Array ? this.request : [this.request];
@@ -574,6 +671,8 @@ export class SavingThrow {
                 if (roll instanceof ChatMessage) {
                     let msg = roll;
                     roll = msg.roll || msg.rolls[0];
+                    if (roll instanceof Array)
+                        roll = roll[0];
                     msg.delete();
                     if (!(roll instanceof Roll))
                         roll = Roll.fromJSON(roll);
@@ -768,18 +867,21 @@ export class SavingThrow {
 
                 if (update.roll) {
                     let tooltip = '';
-                    if (update.roll instanceof Roll) {
-                        msgtoken.roll = update.roll.toJSON();
+                    let roll = update.roll;
+                    if (roll instanceof Array)
+                        roll = roll[0];
+                    if (roll instanceof Roll) {
+                        msgtoken.roll = roll.toJSON();
                         if (msgtoken.roll.terms.length)
                             msgtoken.roll.terms = foundry.utils.duplicate(msgtoken.roll.terms);
                         for (let i = 0; i < msgtoken.roll.terms.length; i++) {
                             if (msgtoken.roll.terms[i] instanceof foundry.dice.terms.RollTerm)
                                 msgtoken.roll.terms[i] = msgtoken.roll.terms[i].toJSON();
                         }
-                        msgtoken.total = update.roll.total;
+                        msgtoken.total = roll.total;
                         msgtoken.reveal = update.reveal || reveal;
                         msgtoken.request = update.request;
-                        tooltip = await update.roll.getTooltip();
+                        tooltip = await roll.getTooltip();
 
                         Hooks.callAll('tokenBarUpdateRoll', this, message, update.id, msgtoken.roll);
                     }
@@ -938,13 +1040,16 @@ export class SavingThrow {
                 msgtoken.reveal = true;
                 msgtoken.tempreveal = true;
                 if (!msgtoken.roll && update.roll) {
+                    let roll = update.roll;
+                    if (roll instanceof Array)
+                        roll = roll[0]; //if multiple rolls, just take the first one
                     //if the roll was not set, then set it
-                    msgtoken.roll = Roll.fromData(update.roll);
+                    msgtoken.roll = roll instanceof Roll ? roll : Roll.fromData(roll);
                 }
                 flags["token" + update.id] = msgtoken;
                 log("Finish Rolling message token", foundry.utils.duplicate(msgtoken));
             }
-            message.update({ flags: { 'monks-tokenbar': flags } });
+            await message.update({ flags: { 'monks-tokenbar': flags } });
         }
     }
 
@@ -1166,15 +1271,15 @@ Hooks.on("renderSavingThrowApp", (app, html) => {
     $('#savingthrow-rollmode', html).val(app.rollmode);
 });
 
-Hooks.on("renderChatMessage", async (message, html, data) => {
-    const svgCard = html.find(".monks-tokenbar.savingthrow");
+Hooks.on("renderChatMessageHTML", async (message, html, data) => {
+    const svgCard = $(".monks-tokenbar.savingthrow", html);
     if (svgCard.length !== 0) {
-        html.addClass("monks-tokenbar");
+        $(html).addClass("monks-tokenbar");
         log('Rendering chat message', message);
         if (!game.user.isGM)
-            html.find(".gm-only").remove();
+            $(".gm-only", html).remove();
         if (game.user.isGM)
-            html.find(".player-only").remove();
+            $(".player-only", html).remove();
 
         let dc = message.getFlag('monks-tokenbar', 'dc');
         let rollmode = message.getFlag('monks-tokenbar', 'rollmode');

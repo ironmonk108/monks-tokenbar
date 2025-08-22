@@ -9,11 +9,6 @@ export class OSERolls extends BaseRolls {
             { id: "scores", text: i18n("MonksTokenBar.Ability"), groups: this.config.scores },
             { id: "save", text: i18n("MonksTokenBar.SavingThrow"), groups: this.config.saves_long }
         ].concat(this._requestoptions);
-
-        /*
-        this._defaultSetting = foundry.utils.mergeObject(this._defaultSetting, {
-            stat1: "ac.value"
-        });*/
     }
 
     get _supportedSystem() {

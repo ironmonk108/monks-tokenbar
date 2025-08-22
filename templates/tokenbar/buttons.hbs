@@ -1,0 +1,10 @@
+<section class="button-group" {{#unless buttons}}style="display:none;"{{/unless}}>
+    {{#each buttons as | buttonGroup | }}
+    <div class="tokenbar-buttons">
+        {{#each buttonGroup as | button i | }}
+        <button id="{{button.id}}" title="{{localize button.title}}" class="inline-control icon fa-solid {{button.icon}}{{#if button.disabled}} disabled{{/if}}{{#if button.active}} active{{/if}}" data-action="buttonClicked"{{#if button.disabled}} disabled="disabled"{{/if}} >
+        </button>
+        {{/each}}
+    </div>
+    {{/each}}
+</section>

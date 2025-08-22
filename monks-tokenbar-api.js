@@ -41,7 +41,7 @@ export class MonksTokenBarAPI {
 
         let entries = MonksTokenBar.getTokenEntries(tokens);
 
-        let savingthrow = new SavingThrowApp(entries, options);
+        let savingthrow = await new SavingThrowApp(entries, options);
         if (options?.silent === true) {
             let msg = await savingthrow.requestRoll();
             if (options.fastForward === true)
@@ -63,7 +63,7 @@ export class MonksTokenBarAPI {
 
         let entries = MonksTokenBar.getTokenEntries([request0, request1]);
 
-        let contestedroll = new ContestedRollApp(entries, options);
+        let contestedroll = await new ContestedRollApp(entries, options);
         if (options?.silent === true) {
             let msg = await contestedroll.requestRoll();
             if (msg && options.fastForward === true)
@@ -83,7 +83,7 @@ export class MonksTokenBarAPI {
     static async assignXP(tokens, options = {}) {
         if (!game.user.isGM)
             return;
-        let assignxp = new AssignXPApp(tokens, options);
+        let assignxp = await new AssignXPApp(tokens, options);
         if (options?.silent === true) {
             let msg = await assignxp.assign();
             if (msg && options.fastForward === true)
@@ -99,10 +99,10 @@ export class MonksTokenBarAPI {
      * pass in a token or an array of tokens
      * 
      * */
-    static convertToLootable(tokens, options = {}) {
+    static async convertToLootable(tokens, options = {}) {
         if (!game.user.isGM)
             return;
-        let lootables = new LootablesApp(tokens, options);
+        let lootables = await new LootablesApp(tokens, options);
 
         if (options?.silent === true)
             lootables.convertToLootable();

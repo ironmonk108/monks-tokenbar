@@ -1,0 +1,31 @@
+<div class="players tab{{#if tab.active}} active{{/if}}" data-group="{{tab.group}}" data-tab="{{tab.id}}">
+    <header>
+        <div class="name">{{localize 'MonksTokenBar.Actors'}}</div>
+        <div class="xp">{{localize 'MonksTokenBar.XP'}}</div>
+
+        <div class="controls">
+            <button type="button" class="inline-control icon fa-regular fa-square-plus add-actor" data-tooltip="{{localize 'MonksTokenBar.AddActor'}}"></button>
+        </div>
+    </header>
+
+    <ol class="scrollable actor-list">
+        {{#each actors as |actor i|}}
+        <li class="actor{{#if actor.disabled}} disabled{{/if}}" data-actor-id="{{actor.id}}" data-index="{{i}}" draggable="false">
+            <div class="name">
+                <div class="player-image" style="background-image: url('{{actor.img}}')">
+                    <video width="30" height="30"><source src="{{actor.img}}" /></video>
+                </div>
+                <span>
+                    {{actor.name}}
+                </span>
+            </div>
+            <div class="xp">
+                <input type="number" class="charxp" value="{{actor.xp}}" />
+            </div>
+            <div class="controls">
+                <button type="button" class="inline-control icon fas {{#if actor.disabled}}fa-plus{{else}}fa-trash{{/if}}" data-tooltip="{{localize 'MonksTokenBar.RemoveActor'}}" data-action="removeActor"></button>
+            </div>
+        </li>
+        {{/each}}
+    </ol>
+</div>

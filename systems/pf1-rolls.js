@@ -10,12 +10,6 @@ export class PF1Rolls extends BaseRolls {
             { id: "save", text: i18n("MonksTokenBar.SavingThrow"), groups: this.config.savingThrows },
             { id: "skill", text: i18n("MonksTokenBar.Skill"), groups: this.config.skills }
         ].concat(this._requestoptions);
-
-        /*
-        this._defaultSetting = foundry.utils.mergeObject(this._defaultSetting, {
-            stat1: "attributes.ac.normal.total",
-            stat2: "skills.per.mod"
-        });*/
     }
 
     get _supportedSystem() {
