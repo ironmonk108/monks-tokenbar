@@ -67,6 +67,7 @@
 	"MonksTokenBar.ActorNoSkill": ": Nie posiada tej umiejętności",
 	"MonksTokenBar.UnknownSystem": "Nie używasz systemu obsługiwanego przez Monk's Tokenbar.",
 	"MonksTokenBar.ActorNotCombatant": "Aktor nie jest częścią walki, aby rzucić inicjatywą",
+	"MonksTokenBar.CombatNotStarted": "Nie można zmienić ruchu na bojowy, nie ma aktywnej walki",
 
 	"MonksTokenBar.TokenbarSettings": "Ustawienia Tokenbar",
 	"MonksTokenBar.IconSettings": "Ustawienia ikon",
@@ -99,14 +100,6 @@
 	"MonksTokenBar.allow-player.hint": "Zezwól graczowi na korzystanie z paska narzędzi, ograniczonego do postaci, które posiada.",
 	"MonksTokenBar.disable-tokenbar.name": "Wyłącz Tokenbar",
 	"MonksTokenBar.disable-tokenbar.hint": "Jeśli nie chcesz widzieć paska tokenów, kliknij to ustawienie",
-	"MonksTokenBar.stat1-icon.name": "Ikona statystyk 1",
-	"MonksTokenBar.stat1-icon.hint": "Zmień ikonę wyświetlaną dla pierwszej statystyki.",
-	"MonksTokenBar.stat1-resource.name": "Zasób statystyk 1",
-	"MonksTokenBar.stat1-resource.hint": "Zmień zasób wyświetlany przez pierwszą statystykę",
-	"MonksTokenBar.stat2-icon.name": "Ikona statystyk 2",
-	"MonksTokenBar.stat2-icon.hint": "Zmień ikonę wyświetlaną dla drugiej statystyki.",
-	"MonksTokenBar.stat2-resource.name": "Zasób statystyk 2",
-	"MonksTokenBar.stat2-resource.hint": "Zmień zasób wyświetlany przez drugą statystykę",
 	"MonksTokenBar.movement-after-combat.name": "Ustawianie ruchu po walce",
 	"MonksTokenBar.movement-after-combat.hint": "Po zakończeniu walki wybierz typ ruchu, do którego chcesz powrócić",
 	"MonksTokenBar.free-npc-combat.name": "Umożliwienie poruszania się aktywnym BN-om podczas walki",
@@ -274,10 +267,20 @@
 	"MonksTokenBar.MacroCopied": "Skopiowano makro",
 	"MonksTokenBar.SelectCriticalSaved": "Wybierz krytyczny sukces",
 	"MonksTokenBar.SelectCriticalFailed": "Wybierz krytyczną porażkę",
+	"MonksTokenBar.DefaultTheme": "Domyślny motyw",
 
 	"MonksTokenBar.None": "Nikt",
 	"MonksTokenBar.GMOnly": "Tylko MG",
 	"MonksTokenBar.PlayersOnly": "Gracze",
-	"MonksTokenBar.Everyone": "Każdy"
+	"MonksTokenBar.Everyone": "Każdy",
 
+	"MonksTokenBar.THEME": {
+		"savingthrow": "Rzut obronny",
+		"assignxp": "Przydziel PD"
+	},
+
+	"MonksTokenBar.ASSIGNXP.TABS": {
+		"monsters": "Potwory",
+		"players": "Gracze"
+	}
 }
