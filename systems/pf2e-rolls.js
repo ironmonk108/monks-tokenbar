@@ -67,7 +67,7 @@ export class PF2eRolls extends BaseRolls {
         let lore = {};
 
         for (let entry of entries) {
-            for (let item of (entry.token.actor?.items || [])) {
+            for (let item of (entry.token.actor?.items || entry.token?.items || [])) {
                 if (item.type == 'lore') {
                     let sourceID = MonksTokenBar.slugify(item.name);
                     if (lore[sourceID] == undefined) {

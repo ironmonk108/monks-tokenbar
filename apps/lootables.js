@@ -212,6 +212,8 @@ export class LootablesApp extends HandlebarsApplicationMixin(ApplicationV2) {
             case 'pf2e': sheetName = "PF2e Party Stash"; break;
         }
 
+        let collection = MonksTokenBar.getEntityCollection(lootsheet);
+
         let entity;
         try {
             entity = await fromUuid(lootentity);
@@ -223,14 +225,14 @@ export class LootablesApp extends HandlebarsApplicationMixin(ApplicationV2) {
         let canClearItems = !createEntity && lootsheet != "pf2e"
         let canHideCombatants = !convertEntity || lootsheet == "pf2e";
 
-        if (convertEntity)
+        if (convertEntity && collection.documentName == "Actor")
             notes = `Convert tokens to lootable using ${sheetName}`;
         else {
             let entityName = "New " + (this.isLootActor(lootsheet) ? "Actor" : "Loot Journal Entry");
             if (this.isLootActor(lootsheet)) {
-                entityName = await this.getEntityName(entity || lootentity);
+                entityName = await this.getEntityName(entity || lootentity, collection);
             } else {
-                entityName = await this.getEntityName(entity || lootentity);
+                entityName = await this.getEntityName(entity || lootentity, collection);
             }
             notes = `${entityName}, using ${sheetName}${setting("create-canvas-object") ? `, and create a ${(this.isLootActor(lootsheet) ? "Token" : "Note")} on the Canvas` : ''}`;
         }
@@ -335,6 +337,7 @@ export class LootablesApp extends HandlebarsApplicationMixin(ApplicationV2) {
         $(".currency-value", this.element).blur((event) => { this.currency[event.currentTarget.name] = $(event.currentTarget).val(); });
 
         let sheet = setting('loot-sheet');
+        let collection = MonksTokenBar.getEntityCollection(sheet);
 
         let entity;
         try {
@@ -342,7 +345,7 @@ export class LootablesApp extends HandlebarsApplicationMixin(ApplicationV2) {
         } catch { }
 
         let canCreateObject = sheet != "pf2e" && this.lootEntity != "convert";
-        let convertEntity = this.lootEntity == "convert";
+        let convertEntity = this.lootEntity == "convert" && collection.documentName == "Actor";
         let createEntity = (entity == undefined || entity instanceof Folder || entity instanceof JournalEntry);
         let canClearItems = !createEntity && !convertEntity && sheet != "pf2e"
         let canHideCombatants = !convertEntity || sheet == "pf2e";
@@ -356,15 +359,14 @@ export class LootablesApp extends HandlebarsApplicationMixin(ApplicationV2) {
         $('[name="hide-combatants"]', this.element).closest('.form-group').toggle(hasLootable && canHideCombatants);
 
         let ctrl = $('[name="loot-entity"]', this.element);
-        let collection = sheet == "pf2e" ? { documentName: "Actor", contents: game.actors.contents.filter(a => a.type == "party"), preventCreate: true } : (sheet == "monks-enhanced-journal" ? game.journal : game.actors);
         let list = await MonksTokenBar.lootEntryListing(ctrl, this.element, collection, this.lootEntity);
         $('[data-uuid="convert"]', list).remove();
         list.insertAfter(ctrl);
-        list.toggleClass("disabled", this.lootEntity == "convert");
+        //list.toggleClass("disabled", this.lootEntity == "convert");
         ctrl.hide();
 
         new foundry.applications.ux.DragDrop.implementation({
-            dropSelector: ".entry-list",
+            dropSelector: ".lootable-form",
             permissions: {
                 drop: this._canDragDrop.bind(this)
             },
@@ -608,19 +610,22 @@ export class LootablesApp extends HandlebarsApplicationMixin(ApplicationV2) {
         }*/
     }
 
-    async getEntityName(entity) {
-        if (entity instanceof JournalEntryPage || entity instanceof Actor)
-            return "<i>Adding</i> to <b>" + entity.name + "</b>";
-        else if (entity instanceof JournalEntry)
-            return "<i>Adding</i> new loot page to <b>" + entity.name + "</b>";
-        else if (entity instanceof Folder)
-            return (entity.documentClass.documentName == "JournalEntry" ? "<i>Creating</i> new Journal Entry within <b>" + entity.name + "</b> folder" : "<i>Creating</i> Actor within <b>" + entity.name + "</b> folder");
-        else if (entity == "convert")
-            return "<i>Convert</i> tokens";
-        else if (entity == "root") {
-            return `<i>Creating</i> ${(entity?.documentClass?.documentName || entity?.parent?.documentClass?.documentName) == "JournalEntry" ? "Journal Entry" : "Actor"} in the <b>root</b> folder`;
-        } else
-            return "Unknown";
+    async getEntityName(entity, collection) {
+        if (entity?.documentCollection == collection && collection != null) {
+            if (entity instanceof JournalEntryPage || entity instanceof Actor)
+                return "<i>Adding</i> to <b>" + entity.name + "</b>";
+            else if (entity instanceof JournalEntry)
+                return "<i>Adding</i> new loot page to <b>" + entity.name + "</b>";
+            else if (entity instanceof Folder)
+                return (entity.documentClass.documentName == "JournalEntry" ? "<i>Creating</i> new Journal Entry within <b>" + entity.name + "</b> folder" : "<i>Creating</i> Actor within <b>" + entity.name + "</b> folder");
+        } else {
+            if (entity == "convert" && collection.documentName == "Actor")
+                return "<i>Convert</i> tokens";
+            else if (entity == "root") {
+                return `<i>Creating</i> ${(entity?.documentClass?.documentName || entity?.parent?.documentClass?.documentName) == "JournalEntry" ? "Journal Entry" : "Actor"} in the <b>root</b> folder`;
+            }
+        }
+        return "Unknown";
     }
 
     getLootableName(entity) {
@@ -660,6 +665,8 @@ export class LootablesApp extends HandlebarsApplicationMixin(ApplicationV2) {
         if (lootSheet == 'none')
             return;
 
+        let collection = MonksTokenBar.getEntityCollection(lootSheet);
+
         let msg = "";
         let created = false;
 
@@ -679,7 +686,7 @@ export class LootablesApp extends HandlebarsApplicationMixin(ApplicationV2) {
             e.items = e.items.filter(i => i && i.quantity > 0);
         }
 
-        if (lootEntity == 'convert') {
+        if (lootEntity == 'convert' && collection?.documentName == "Actor") {
             if (lootSheet == "item-piles") {
                 let tokens = this.entries.flatMap(e => {
                     return e.tokens.map(t => {
@@ -839,8 +846,6 @@ export class LootablesApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
             msg = `Actors have been converted to lootable`;
         } else {
-            let collection = (this.isLootActor(lootSheet) ? game.actors : game.journal);
-
             let entity;
             try {
                 entity = await fromUuid(lootEntity);

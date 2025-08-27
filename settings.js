@@ -172,9 +172,11 @@ export const registerSettings = function () {
 		default: "false",
 		type: String,
 		onChange: (val) => {
-			$(MonksTokenBar.tokenbar.element).toggleClass("vertical", val == "true");
+			if (MonksTokenBar.tokenbar?.element)
+				$(MonksTokenBar.tokenbar.element).toggleClass("vertical", val == "true");
 		},
 		choices: orientation,
+		requiresReload: true
 	});
 
 	game.settings.register(modulename, "dblclick-action", {
@@ -430,6 +432,9 @@ export const registerSettings = function () {
 		default: "monks-enhanced-journal",
 		choices: lootsheetoptions,
 		type: String,
+		onChange: () => {
+			ui.controls.render({ force: true, reset: true });
+		}
 	});
 	game.settings.register(modulename, "loot-entity", {
 		name: game.i18n.localize("MonksTokenBar.loot-entity.name"),

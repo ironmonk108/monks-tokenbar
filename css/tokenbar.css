@@ -229,6 +229,7 @@ body #tokenbar-window:first-child{
     justify-content: center;
     display: flex;
     position: relative;
+    overflow: hidden;
 }
 
 #tokenbar.vertical .token .token-content {
@@ -805,6 +806,10 @@ body #tokenbar-window:first-child{
     flex-direction: column;
 }
 
+.monks-tokenbar.chat-card .token-roll-container .dice-roll .roll-controls .dice-total .icons {
+    display: none;
+}
+
 .monks-tokenbar.chat-card .token-roll-container .dice-roll.dsn-hide {
     display: flex !important;
 }
@@ -1316,12 +1321,12 @@ body.theme-light #lootables:not(themed) .entry-list .entry:last-child {
                                   supported by Chrome, Edge, Opera and Firefox */
 }
 
-.savingthrow-picker .dialog-buttons {
+.savingthrow-picker .form-footer {
     display: flex;
     flex-direction: column;
 }
 
-.savingthrow-picker .dialog-buttons > .dialog-button {
+.savingthrow-picker .form-footer > button {
     flex: 0 0 32px;
     width: 100%;
     margin-bottom: 2px;
@@ -1381,6 +1386,7 @@ a.inline-request-roll {
     user-select: text;
     transition: outline-color 0.5s;
     cursor: pointer;
+    position: relative;
 }
 
 body.theme-dark .application:not(themed) .journal-select,
@@ -1406,7 +1412,7 @@ body.theme-light .application:not(themed) .journal-select,
 }
 
 .journal-select > div > span {
-    line-height: 26px !important;
+    line-height: 30px !important;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1809,4 +1815,14 @@ body.system-dnd5e .monks-tokenbar.chat-card .dice-roll.expanded .dice-tooltip-co
 
 #tokenbar.vertical .button-group .tokenbar-buttons {
     flex-direction: row;
+}
+
+#tokenbar.minimized {
+    min-height: 80px;
+    width: 27px !important;
+}
+
+#tokenbar.minimized.vertical {
+    height: 27px !important;
+    min-height: 27px;
 }

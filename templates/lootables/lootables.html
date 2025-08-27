@@ -1,10 +1,12 @@
-<form class="monks-tokenbar flexcol">
+<form class="monks-tokenbar lootable-form flexcol">
     <div class="dialog-content">
         {{#if hasLootable}}
         <section class="sheet-header">
             <div class="form-group">
                 <label>{{localize 'MonksTokenBar.loot-entity.name'}}</label>
-                <input type="text" name="loot-entity" value="lootEntity" />
+                <div class="form-fields" style="flex: 0 0 100%;">
+                    <input type="text" name="loot-entity" value="lootEntity" />
+                </div>
             </div>
             <div class="form-group" style="{{#unless createEntity}}display: none;{{/unless}}">
                 <label>{{localize 'MonksTokenBar.CreateEntityName'}}</label>

@@ -108,7 +108,7 @@ export class AssignXPApp extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     };
 
-    _initializeApplicationOptions(options) {
+    _initializeApplicationOptions(options = {}) {
         options = super._initializeApplicationOptions(options);
         const { colorScheme } = game.settings.get("core", "uiConfig");
         const theme = game.user.getFlag("monks-tokenbar", "themes") || {};
@@ -325,7 +325,7 @@ export class AssignXPApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     static async autoAssign() {
-        let msg = await AssignXPApp.assignXP();
+        let msg = await AssignXPApp.assignXP.call(this);
         if (msg) AssignXP.onAssignAllXP(msg);
         return msg;
     }

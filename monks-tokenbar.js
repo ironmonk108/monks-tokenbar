@@ -194,7 +194,7 @@ export class MonksTokenBar {
                 let token = fromUuidSync(msgToken.uuid);
                 let actor = token?.actor ? token.actor : token;
 
-                return !!msgToken.roll && actor?.type == "character" && (game.user.isGM || actor.isOwner);
+                return !!msgToken.roll && (game.user.isGM || actor.isOwner);
             };
 
             return [...menu, ...[
@@ -390,7 +390,7 @@ export class MonksTokenBar {
             const entries = MonksTokenBar.getTokenEntries(targets);
             if (entries.length) {
                 let savingthrow = await new SavingThrowApp(entries, { request: 'save:' + button.dataset.ability, dc: item.system.save.dc });
-                savingthrow.requestRoll();
+                savingthrow.doRequestRoll();
 
                 event.preventDefault();
                 event.stopImmediatePropagation();
@@ -424,7 +424,7 @@ export class MonksTokenBar {
         MonksTokenBar.setTokenSize();
 
         if ((game.user.isGM || setting("allow-player")) && !setting("disable-tokenbar")) {
-            let { top, left } = game.user.getFlag("monks-tokenbar", "position");
+            let { top, left } = game.user.getFlag("monks-tokenbar", "position") || {};
             MonksTokenBar.tokenbar = await new TokenBar().render(true, { position: { top, left } });
             MonksTokenBar.tokenbar.refresh();
         }
@@ -746,7 +746,7 @@ export class MonksTokenBar {
 
                 let axpa;
                 if (showXP) {
-                    axpa = await new AssignXPApp(combat, showLoot ? { classes: ["dual"] } : null);
+                    axpa = await new AssignXPApp(combat, showLoot ? { classes: ["dual"] } : {});
                     await axpa.render(true);
                 }
                 /*
@@ -756,7 +756,7 @@ export class MonksTokenBar {
                 }*/
 
                 if (showLoot) {
-                    let lapp = await new LootablesApp(combat, showXP ? { classes: ["dual"] } : null);
+                    let lapp = await new LootablesApp(combat, showXP ? { classes: ["dual"] } : {});
                     if (!lapp.entries.length)
                         lapp.close();
                     else {
@@ -871,7 +871,7 @@ export class MonksTokenBar {
             return;
 
         if (MonksTokenBar.grabmessage != undefined) {
-            $('#chat-log .chat-message[data-message-id="' + MonksTokenBar.grabmessage.id + '"]').removeClass('grabbing');
+            $('#chat .chat-message[data-message-id="' + MonksTokenBar.grabmessage.id + '"]').removeClass('grabbing');
         }
 
         if (MonksTokenBar.grabmessage == message)
@@ -879,7 +879,7 @@ export class MonksTokenBar {
         else {
             MonksTokenBar.grabmessage = message;
             if (message != undefined)
-                $('#chat-log .chat-message[data-message-id="' + MonksTokenBar.grabmessage.id + '"]').addClass('grabbing');
+                $('#chat .chat-message[data-message-id="' + MonksTokenBar.grabmessage.id + '"]').addClass('grabbing');
         }
 
         if (event.stopPropagation) event.stopPropagation();
@@ -954,21 +954,33 @@ export class MonksTokenBar {
         ui[data.name]?.render();
     }
 
-    static async lootEntryListing(ctrl, html, collection = game.journal, uuid) {
+    static getEntityCollection(sheet) {
+        let collection = null;
+        if (sheet == "pf2e")
+            collection = { documentName: "Actor", contents: game.actors.contents.filter(a => a.type == "party"), preventCreate: true };
+        else if (sheet == "monks-enhanced-journal")
+            collection = game.journal;
+        else if (sheet == "item-piles" || sheet == "lootsheetnpc5e" || sheet == "merchantsheetnpc")
+            collection = game.actors;
+
+        return collection;
+    }
+
+    static async lootEntryListing(ctrl, html, collection, uuid) {
         async function selectItem(event) {
             event.preventDefault();
             event.stopPropagation();
             let id = event.currentTarget.dataset.uuid;
             ctrl.val(id).change();
 
-            let name = await getEntityName(id);
+            let name = await getEntityName(id, collection);
 
             $('.journal-select-text', ctrl.next()).html(name);
             $('.journal-list.open').removeClass('open');
             $(event.currentTarget).addClass('selected').siblings('.selected').removeClass('selected');
         }
 
-        async function getEntityName(id) {
+        async function getEntityName(id, collection) {
             let entity = null;
             try {
                 entity = (id ? await fromUuid(id) : null);
@@ -976,25 +988,28 @@ export class MonksTokenBar {
                 entity = "";
             }
 
-            if (entity instanceof JournalEntryPage || entity instanceof Actor)
-                return "<i>Adding</i> to <b>" + entity.name + "</b>";
-            else if (entity instanceof JournalEntry)
-                return "<i>Adding</i> new loot page to <b>" + entity.name + "</b>";
-            else if (entity instanceof Folder)
-                return (entity.documentClass.documentName == "JournalEntry" ? "<i>Creating</i> new Journal Entry within <b>" + entity.name + "</b> folder" : "<i>Creating</i> Actor within <b>" + entity.name + "</b> folder");
-            else if (id == "convert")
-                return "<i>Convert</i> tokens";
-            else if (id == "root") {
-                let lootsheet = setting('loot-sheet');
-                let isLootActor = ['lootsheetnpc5e', 'merchantsheetnpc', 'item-piles'].includes(lootsheet);
-                return `<i>Creating</i> ${isLootActor ? "Actor" : "Journal Entry"} in the <b>root</b> folder`;
-            } else
-                return "Unknown";
+            if (entity?.documentCollection == collection && collection != null) {
+                if (entity instanceof JournalEntryPage || entity instanceof Actor)
+                    return "<i>Adding</i> to <b>" + entity.name + "</b>";
+                else if (entity instanceof JournalEntry)
+                    return "<i>Adding</i> new loot page to <b>" + entity.name + "</b>";
+                else if (entity instanceof Folder)
+                    return (entity.documentClass.documentName == "JournalEntry" ? "<i>Creating</i> new Journal Entry within <b>" + entity.name + "</b> folder" : "<i>Creating</i> Actor within <b>" + entity.name + "</b> folder");
+            } else {
+                if (id == "convert" && collection?.documentName == "Actor")
+                    return "<i>Convert</i> tokens";
+                else if (id == "root") {
+                    let lootsheet = setting('loot-sheet');
+                    let isLootActor = ['lootsheetnpc5e', 'merchantsheetnpc', 'item-piles'].includes(lootsheet);
+                    return `<i>Creating</i> ${isLootActor ? "Actor" : "Journal Entry"} in the <b>root</b> folder`;
+                }
+            }
+            return "Unknown";
         }
 
         function getEntries(folderID, contents) {
             let createItem = $('<li>').addClass('journal-item create-item').attr('data-uuid', folderID || "root").html($('<div>').addClass('journal-title').toggleClass('selected', uuid == undefined).html("-- create entry here --")).click(selectItem.bind())
-            let result = collection.preventCreate ? [] : [createItem];
+            let result = collection?.preventCreate ? [] : [createItem];
             return result.concat((contents || [])
                 .filter(c => {
                     return (c instanceof JournalEntry && c.pages.size == 1 && foundry.utils.getProperty(c.pages.contents[0], "flags.monks-enhanced-journal.type") == "loot") || (c instanceof Actor)
@@ -1022,13 +1037,13 @@ export class MonksTokenBar {
 
         let list = $('<ul>')
             .addClass('journal-list')
-            .append($('<li>').addClass('journal-item convert-item').attr('data-uuid', 'convert').toggle(collection.documentName == "Actor" && collection.preventCreate !== true).html($('<div>').addClass('journal-title').toggleClass('selected', uuid == 'convert').html("-- convert tokens --")).click(selectItem.bind()))
-            .append(getFolders(collection.folders?.filter(f => f.folder == null)))
-            .append(getEntries(null, collection.contents.filter(j => j.folder == null)));
+            .append($('<li>').addClass('journal-item convert-item').attr('data-uuid', 'convert').toggle(collection?.documentName == "Actor" && collection?.preventCreate !== true).html($('<div>').addClass('journal-title').toggleClass('selected', uuid == 'convert').html("-- convert tokens --")).click(selectItem.bind()))
+            .append(getFolders(collection?.folders?.filter(f => f.folder == null)))
+            .append(getEntries(null, collection?.contents.filter(j => j.folder == null)));
 
         $(html).click(function () { list.removeClass('open') });
 
-        let name = await getEntityName(uuid);
+        let name = await getEntityName(uuid, collection);
 
         return $('<div>')
             .addClass('journal-select')
@@ -1229,15 +1244,15 @@ Hooks.on("renderSettingsConfig", (app, html, data) => {
         $('[name="monks-tokenbar.loot-entity"]', html).closest('.form-group').toggle(hasLootable);
         $('[name="monks-tokenbar.open-loot"]', html).closest('.form-group').toggle(hasLootable);
         $('[name="monks-tokenbar.show-lootable-menu"]', html).closest('.form-group').toggle(hasLootable);
-        $('[name="monks-tokenbar.create-canvas-object"]', html).closest('.form-group').toggle(sheet != "pf2e");
-        $('[name="monks-tokenbar.loot-name"]', html).closest('.form-group').toggle(sheet != "pf2e");
+        $('[name="monks-tokenbar.create-canvas-object"]', html).closest('.form-group').toggle(sheet != "pf2e" && hasLootable);
+        $('[name="monks-tokenbar.loot-name"]', html).closest('.form-group').toggle(sheet != "pf2e" && hasLootable);
 
         let entityid = setting('loot-entity');
         let ctrl = $('[name="monks-tokenbar.loot-entity"]', html);
         if (ctrl.next().hasClass("journal-select"))
             ctrl.next().remove();
 
-        let collection = sheet == "pf2e" ? { documentName: "Actor", contents: game.actors.contents.filter(a => a.type == "party"), preventCreate: true } : (sheet == "monks-enhanced-journal" ? game.journal : game.actors);
+        let collection = MonksTokenBar.getEntityCollection(sheet);
         let list = await MonksTokenBar.lootEntryListing(ctrl, html, collection, entityid);
         list.insertAfter(ctrl);
         ctrl.hide();
@@ -1248,6 +1263,8 @@ Hooks.on("renderSettingsConfig", (app, html, data) => {
 
         $('[name="monks-tokenbar.loot-name"]', html).closest('.form-group').toggle(entity.startsWith("Folder") || !entity);
     }).change();
+
+    $('[name="monks-tokenbar.loot-entity"]', html).closest(".form-fields").css('flex', '0 0 100%');
 
     $('[name="monks-tokenbar.loot-name"]', html).val(i18n($('[name="monks-tokenbar.loot-name"]', html).val()));
 
@@ -1512,7 +1529,7 @@ Hooks.on("setupTileActions", (app) => {
             let savingthrow = await new SavingThrowApp(MonksTokenBar.getTokenEntries(entities), { rollmode: action.data.rollmode, request: [{ type, key }], dc, flavor });
             savingthrow['active-tiles'] = { id: args._id, tile: args.tile.uuid, action: action };
             if (action.data.silent === true) {
-                let msg = await savingthrow.requestRoll();
+                let msg = await savingthrow.doRequestRoll();
                 if (action.data.fastforward === true) {
                     //need to delay slightly so the original action has time to save a state properly.
                     window.setTimeout(function () {
@@ -1663,7 +1680,7 @@ Hooks.on("setupTileActions", (app) => {
                 { rollmode: action.data.rollmode, request: action.data.request, flavor: flavor });
             contested['active-tiles'] = { id: args._id, tile: args.tile.uuid, action: action };
             if (action.data.silent === true) {
-                let msg = await contested.requestRoll();
+                let msg = await contested.doRequestRoll();
                 if (action.data.fastforward === true) {
                     //need to delay slightly so the original action has time to save a state properly.
                     window.setTimeout(function () {

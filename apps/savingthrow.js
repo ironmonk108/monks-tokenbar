@@ -208,7 +208,7 @@ export class SavingThrowApp extends HandlebarsApplicationMixin(ApplicationV2) {
         let failed = [];
         tokens = tokens.filter(t => {
             //don't add this token a second time
-            if (t instanceof Token && t.actor == undefined) {
+            if (t instanceof foundry.canvas.placeables.Token && t.actor == undefined) {
                 failed.push(t.name);
                 return false;
             }
@@ -387,12 +387,16 @@ export class SavingThrowApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
             if (requests[0].type == 'misc' && requests[0].key == 'init') {
                 if (!game.combats.active) {
-                    await Dialog.confirm({
-                        title: "No Combat",
+                    await foundry.applications.api.DialogV2.confirm({
+                        window: {
+                            title: "No Combat",
+                        },
                         content: "You're asking for an initiative roll but there's no combat.  <br />Would you like to start a combat with these tokens?<br />",
-                        yes: async () => {
-                            const cls = getDocumentClass("Combat")
-                            await cls.create({ scene: canvas.scene.id, active: true });
+                        yes: {
+                            callback: async () => {
+                                const cls = getDocumentClass("Combat")
+                                await cls.create({ scene: canvas.scene.id, active: true });
+                            }
                         }
                     });
                 }
@@ -735,18 +739,23 @@ export class SavingThrow {
                         let value = MonksTokenBar.system.getValue(actor, r.type, r.key, e);
                         let label = r.name + (value != undefined ? ` (${value > 0 ? "+" : ""}${value})` : '');
                         return {
+                            action: MonksTokenBar.slugify(r.type + "-" + r.key),
                             label: label,
                             disabled: disabled,
                             callback: () => r
                         }
                     });
-                    request = await Dialog.wait({
-                        title: "Please pick a roll",
+                    request = await foundry.applications.api.DialogV2.wait({
+                        window: {
+                            title: "Please pick a roll",
+                        },
+                        position: { width: 300 },
+                        classes: ["savingthrow-picker"],
                         content: "",
                         focus: true,
                         close: () => { return null; },
                         buttons: buttons
-                    }, { classes: ["savingthrow-picker"], width: 300 });
+                    });
                 }
             }
 
@@ -1232,6 +1241,9 @@ export class SavingThrow {
 
         let tooltip = await roll.getTooltip();
         let tooltipElem = $(tooltip);
+        if (tooltipElem.hasClass("dice-tooltip-collapser")) {
+            tooltipElem = $(".dice-tooltip", tooltipElem);
+        }
         if (tooltipElem.hasClass("dice-tooltip")) {
             tooltipElem = $(".tooltip-part", tooltipElem).toggleClass("ignored", keptRoll == oldRoll);
         }

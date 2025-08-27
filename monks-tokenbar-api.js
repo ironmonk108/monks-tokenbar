@@ -43,7 +43,7 @@ export class MonksTokenBarAPI {
 
         let savingthrow = await new SavingThrowApp(entries, options);
         if (options?.silent === true) {
-            let msg = await savingthrow.requestRoll();
+            let msg = await savingthrow.doRequestRoll();
             if (options.fastForward === true)
                 return SavingThrow.onRollAll('all', msg, options);
             else
@@ -65,7 +65,7 @@ export class MonksTokenBarAPI {
 
         let contestedroll = await new ContestedRollApp(entries, options);
         if (options?.silent === true) {
-            let msg = await contestedroll.requestRoll();
+            let msg = await contestedroll.doRequestRoll();
             if (msg && options.fastForward === true)
                 return ContestedRoll.onRollAll('all', msg, options);
             else

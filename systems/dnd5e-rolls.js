@@ -206,7 +206,8 @@ export class DnD5eRolls extends BaseRolls {
 
         if (rollfn != undefined) {
             try {
-                return rollfn.call(context, config, dialogConfig, messageConfig).then((roll) => {
+                return rollfn.call(context, config, dialogConfig, messageConfig).then((rolls) => {
+                    const roll = Array.isArray(rolls) && rolls.length ? rolls[0] : rolls;
                     return callback(roll);
                 }).catch((e) => {
                     console.error(e);

@@ -191,6 +191,16 @@ export class TokenBar extends HandlebarsApplicationMixin(ApplicationV2) {
 
         $(".token", this.element).dblclick(this._onDblClickToken.bind(this));//.hover(this._onHoverToken.bind(this));
         $(this.element).toggleClass("vertical", setting('show-vertical') == "true");
+
+        new foundry.applications.ux.DragDrop.implementation({
+            dragSelector: ".token",
+            permissions: {
+                dragstart: this._canDragStart.bind(this),
+            },
+            callbacks: {
+                dragstart: this._onDragStart.bind(this),
+            }
+        }).bind(this.element);
     }
 
     /*
@@ -632,7 +642,7 @@ export class TokenBar extends HandlebarsApplicationMixin(ApplicationV2) {
                             return (u.name.indexOf(" ") > -1 ? "[" + u.name + "]" : u.name);
                         });
                     if (ui.sidebar.activeTab !== "chat")
-                        ui.sidebar.activateTab("chat");
+                        ui.sidebar.changeTab("chat", "primary");
 
                     $("#chat-message").val('/w ' + players.join(' ') + ' ');
                     $("#chat-message").focus();
@@ -649,14 +659,18 @@ export class TokenBar extends HandlebarsApplicationMixin(ApplicationV2) {
                     return game.user.isGM && entry?.token;
                 },
                 callback: (li) => {
-                    Dialog.confirm({
-                        title: "Exclude Token",
+                    foundry.applications.api.DialogV2.confirm({
+                        window: {
+                            title: "Exclude Token",
+                        },
                         content: "Are you sure you wish to remove this token from the Tokenbar?",
-                        yes: () => {
-                            let id = li.dataset.tokenId;
-                            const entry = this.entries.find(t => t.token?.id === id);
-                            if (entry)
-                                entry.token.setFlag("monks-tokenbar", "include", "exclude");
+                        yes: {
+                            callback: () => {
+                                let id = li.dataset.tokenId;
+                                const entry = this.entries.find(t => t.token?.id === id);
+                                if (entry)
+                                    entry.token.setFlag("monks-tokenbar", "include", "exclude");
+                            }
                         }
                     });
                 }
@@ -721,7 +735,7 @@ export class TokenBar extends HandlebarsApplicationMixin(ApplicationV2) {
                     let id = li.dataset.tokenId || li.dataset.actorId;
                     const entry = this.entries.find(t => t.token?.id === id || t.actor?.id === id);
 
-                    return (game.user.isGM && entry);
+                    return (game.user.isGM && entry && entry.actor?.type == "character");
                 },
                 callback: li => {
                     let id = li.dataset.tokenId || li.dataset.actorId;
@@ -927,7 +941,7 @@ export class TokenBar extends HandlebarsApplicationMixin(ApplicationV2) {
         if (!this.dbltimer) {
             this.dbltimer = window.setTimeout(async function () {
                 if (that.doubleclick !== true) {
-                    if (event?.originalEvent?.ctrlKey || event?.originalEvent?.metaKey) {
+                    if (event?.ctrlKey || event?.metaKey) {
                         let token = canvas.tokens.get(entry?.id);
                         if (!token)
                             return;
@@ -938,7 +952,7 @@ export class TokenBar extends HandlebarsApplicationMixin(ApplicationV2) {
                             // add to user targets
                             token.setTarget(true, { user: game.user, releaseOthers: false, groupSelection: false });
                         }
-                    } else if (event?.originalEvent?.altKey && setting("movement") == "none" && game.user.isGM) {
+                    } else if (event?.altKey && setting("movement") == "none" && game.user.isGM) {
                         if (entry && (entry.movement == undefined || entry.movement == "")) {
                             // Dungeon mode
                             for (let entry of that.entries) {
@@ -947,8 +961,10 @@ export class TokenBar extends HandlebarsApplicationMixin(ApplicationV2) {
                                     await entry.token.unsetFlag("monks-tokenbar", "movement");
                                 }
                             }
-                            entry.movement = "free";
-                            await entry.token.setFlag("monks-tokenbar", "movement", "free");
+                            if (entry.token) {
+                                entry.movement = "free";
+                                await entry.token.setFlag("monks-tokenbar", "movement", "free");
+                            }
                             that.render(true);
                         }
                     } else {
@@ -961,7 +977,7 @@ export class TokenBar extends HandlebarsApplicationMixin(ApplicationV2) {
                             if (token) {
                                 let animate = false;
                                 if (token._object)
-                                    animate = MonksTokenBar.manageTokenControl(token._object, { shiftKey: event?.originalEvent?.shiftKey });
+                                    animate = MonksTokenBar.manageTokenControl(token._object, { shiftKey: event?.shiftKey });
                                 if (token.getFlag("monks-tokenbar", "nopanning"))
                                     animate = false;
                                 (animate ? canvas.animatePan({ x: token?._object?.x, y: token?._object?.y }) : true);

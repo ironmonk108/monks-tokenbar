@@ -276,7 +276,8 @@
 
 	"MonksTokenBar.THEME": {
 		"savingthrow": "Saving Throw",
-		"assignxp": "Assign XP"
+		"assignxp": "Assign XP",
+		"lootables": "Lootables"
 	},
 
 	"MonksTokenBar.ASSIGNXP.TABS": {

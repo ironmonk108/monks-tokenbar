@@ -150,7 +150,7 @@ export class ContestedRollApp extends HandlebarsApplicationMixin(ApplicationV2) 
     }
 
     static removeToken(event, target) {
-        let idx = parseInt(target.closest(".actor").dataset.index);
+        let idx = parseInt(target.closest(".item").dataset.index);
         this.entries[idx].token = null;
         this.render(true);
     }
@@ -401,17 +401,22 @@ export class ContestedRoll {
                         let value = MonksTokenBar.system.getValue(actor, r.type, r.key, e);
                         let label = r.name + (value != undefined ? ` (${value > 0 ? "+" : ""}${value})` : '');
                         return {
+                            action: MonksTokenBar.slugify(r.type + "-" + r.key),
                             label: label,
                             callback: () => r
                         }
                     });
-                    request = await Dialog.wait({
-                        title: "Please pick a roll",
+                    request = await foundry.applications.api.DialogV2.wait({
+                        window: {
+                            title: "Please pick a roll",
+                        },
+                        position: { width: 300 },
+                        classes: ["savingthrow-picker"],
                         content: "",
                         focus: true,
                         close: () => { return null; },
                         buttons: buttons
-                    }, { classes: ["savingthrow-picker"], width: 300 });
+                    });
                 }
             }
 
@@ -874,6 +879,9 @@ export class ContestedRoll {
 
         let tooltip = await roll.getTooltip();
         let tooltipElem = $(tooltip);
+        if (tooltipElem.hasClass("dice-tooltip-collapser")) {
+            tooltipElem = $(".dice-tooltip", tooltipElem);
+        }
         if (tooltipElem.hasClass("dice-tooltip")) {
             tooltipElem = $(".tooltip-part", tooltipElem).toggleClass("ignored", keptRoll == oldRoll);
         }
