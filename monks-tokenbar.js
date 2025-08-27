@@ -1316,6 +1316,26 @@ Hooks.on("renderTokenConfig", (app, html, data) => {
     }
 });
 
+Hooks.on("renderPrototypeTokenConfig", (app, html, data) => {
+    if (game.user.isGM) {
+        let include = app.token.getFlag('monks-tokenbar', 'include') || 'default';
+        include = (include === true ? 'include' : (include === false ? 'exclude' : include || 'default'));
+        //(app.object.actor != undefined && app.object.actor?.hasPlayerOwner && (game.user.isGM || app.object.actor?.isOwner) && (app.object.actor?.type != 'npc' || app.object.document.disposition == 1));
+        let group = $('<div>')
+            .addClass('form-group')
+            .append($('<label>').html('Show on Tokenbar'))
+            .append($('<div>').addClass('form-fields')
+                .append($('<select>').attr('name', 'flags.monks-tokenbar.include')
+                    .append($('<option>').attr('value', 'default').html('Default').prop('selected', include == 'default'))
+                    .append($('<option>').attr('value', 'include').html('Include').prop('selected', include == 'include'))
+                    .append($('<option>').attr('value', 'exclude').html('Exclude').prop('selected', include == 'exclude'))));
+
+        $('div[data-tab="identity"]', html).append(group);
+
+        app.setPosition();
+    }
+});
+
 Hooks.on("renderChatMessageHTML", async (message, html, data) => {
     $('.item-card button[data-action="save"]', html).click(MonksTokenBar.chatCardAction.bind(message));
 
