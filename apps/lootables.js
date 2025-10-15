@@ -190,7 +190,7 @@ export class LootablesApp extends HandlebarsApplicationMixin(ApplicationV2) {
         context = await super._preparePartContext(partId, context, options);
         switch (partId) {
             case "body":
-                this._prepareBodyContext(context, options);
+                await this._prepareBodyContext(context, options);
                 break;
             case "footer":
                 context.buttons = this.prepareButtons();
