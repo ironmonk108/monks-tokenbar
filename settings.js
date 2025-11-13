@@ -16,6 +16,7 @@ export const registerSettings = function () {
 	let imageoptions = {
 		'token': game.i18n.localize("MonksTokenBar.token-pictures.token"),
 		'actor': game.i18n.localize("MonksTokenBar.token-pictures.actor"),
+		'tokenonly': game.i18n.localize("MonksTokenBar.token-pictures.tokenonly"),
 	};
 
 	let orientation = {
@@ -188,15 +189,6 @@ export const registerSettings = function () {
 		choices: dblclickoptions,
 		type: String,
 		requiresReload: true
-	});
-
-	game.settings.register(modulename, "use-token-scaling", {
-		name: game.i18n.localize("MonksTokenBar.use-token-scaling.name"),
-		hint: game.i18n.localize("MonksTokenBar.use-token-scaling.hint"),
-		scope: "client",
-		config: true,
-		default: false,
-		type: Boolean,
 	});
 
 	//------------------------------------Icon settings--------------------------------------------
@@ -527,6 +519,16 @@ export const registerSettings = function () {
 		config: game.system.id == 'dnd5e',
 		default: false,
 		type: Boolean
+	});
+
+	game.settings.register(modulename, "allow-fade", {
+		name: i18n("MonksTokenBar.allow-fade.name"),
+		hint: i18n("MonksTokenBar.allow-fade.hint"),
+		scope: "client",
+		config: true,
+		default: false,
+		type: Boolean,
+		requiresReload: true
 	});
 
 	game.settings.register(modulename, "tokenbar-collapsed", {

@@ -1,4 +1,4 @@
-:root {
+﻿:root {
     --tokenbar-token-size: 48px;
 }
 
@@ -149,9 +149,13 @@ body #tokenbar-window:first-child{
     margin-top: 2px;
 }
 
-#token-action-bar.collapsed {
+#tokenbar.collapsed #token-action-bar {
     display: none;
     pointer-events: none;
+}
+
+#tokenbar.collapsed .tokenbar-header-button:before {
+    content: "";
 }
 
 #tokenbar .token-list {
@@ -217,7 +221,7 @@ body #tokenbar-window:first-child{
 }
 
 #tokenbar.vertical #token-action-bar .token-list .token .token-stats {
-    justify-content: flex-start;
+    justify-content: center;
 }
 
 #tokenbar .token .token-content {
@@ -1166,7 +1170,7 @@ li.chat-message.message .message-content .monks-tokenbar *.noselect * {
     user-select: none !important; /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
 }
 
-.group-header {
+.form-group.group-header {
     font-weight: bold;
     padding: 8px 20px;
     background-color: rgba(255, 255, 255, 0.4);
@@ -1771,9 +1775,10 @@ body.system-dnd5e .monks-tokenbar.chat-card .dice-roll.expanded .dice-tooltip-co
     align-items: flex-start;
     padding-top: 0.5rem;
     padding-left: 0.3rem;
+    flex-direction: column;
 }
 
-#tokenbar > .window-header *:not(i) {
+#tokenbar > .window-header *:not(i):not([data-action="collapse"]) {
     display: none;
 }
 
@@ -1825,4 +1830,29 @@ body.system-dnd5e .monks-tokenbar.chat-card .dice-roll.expanded .dice-tooltip-co
 #tokenbar.minimized.vertical {
     height: 27px !important;
     min-height: 27px;
+}
+
+.tokenbar-header-button {
+    border: 0px;
+    width: 12px;
+    height: 12px;
+    line-height: 12px;
+    margin-top: 10px;
+    flex: 0 0 16px;
+    min-height: 12px;
+    min-width: 12px;
+}
+
+#tokenbar.vertical .tokenbar-header-button {
+    margin-top: 0px;
+    right: 2px;
+    position: absolute;
+}
+
+#tokenbar.vertical .tokenbar-header-button:before {
+    content: "";
+}
+
+#tokenbar.vertical.collapsed .tokenbar-header-button:before {
+    content: "";
 }

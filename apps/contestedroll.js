@@ -32,7 +32,7 @@ export class ContestedRollApp extends HandlebarsApplicationMixin(ApplicationV2) 
         this.entries = this.entries.map(e => {
             if (e.token == undefined)
                 e.token = available.shift();
-            e.request = MonksTokenBar.findBestRequest(e.request, this.requestoptions);
+            e.request = MonksTokenBar.findBestRequest(e.request, this.requestoptions)[0];
             return e;
         });
 
@@ -298,8 +298,8 @@ export class ContestedRollApp extends HandlebarsApplicationMixin(ApplicationV2) 
 
         // Not sure why the contested roll value isn't being displayed.  The value is there, but the select isn't displaying it.
         window.setTimeout(() => { 
-            $('.request-roll[data-index="0"]', this.element).val(this.entries[0].request[0].slug);
-            $('.request-roll[data-index="1"]', this.element).val(this.entries[1].request[0].slug);
+            $('.request-roll[data-index="0"]', this.element).val(this.entries[0].request.slug);
+            $('.request-roll[data-index="1"]', this.element).val(this.entries[1].request.slug);
         }, 100);
     };
 
@@ -465,7 +465,7 @@ export class ContestedRoll {
                     let keys = msgtoken.keys || {};
                     let e = Object.assign({}, evt);
                     if (!e.target)
-                        e.target = evt?.target;
+                        e.target = evt?.target || { closest: () => { } };
                     e.ctrlKey = evt?.ctrlKey;
                     e.altKey = evt?.altKey;
                     e.shiftKey = evt?.shiftKey;

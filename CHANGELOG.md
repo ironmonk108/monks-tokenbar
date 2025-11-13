@@ -1,3 +1,29 @@
+## Version 13.02
+
+Fixed issue with Contested Roll always rolling Strength
+
+Fixed issue with Monks Active Tiles integration, requesting a roll when a token enters a tile
+
+Removed buff, race, and attack as Lootable types
+
+Fixed issue when updating, creating, or deleting an item not associated with an Actor
+
+Adding Foundry fading style to Tokenbar
+
+Adding Tokenbar collapse button
+
+Added option to display Tokenbar tokens as the Token Image, Actor Portrait, or look for the Token Image first before defaulting to Actor Portrait.
+
+Fixed an issue getting viewstats from an Actor when the viewstats aren't appropriate.
+
+Removed token scaling on the Tokenbar... because v13.
+
+Fixed issue with TokenBar API when trying to globally set movement
+
+Fixed issue where hitting escape would remove the Tokenbar windows
+
+Fixed issue where updating the Tokenbar tokens wouls cause it to de-minimize.
+
 ## Version 13.01
 
 Added v13 compatibility

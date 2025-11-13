@@ -85,7 +85,7 @@ export class LootablesApp extends HandlebarsApplicationMixin(ApplicationV2) {
                         else
                             result = foundry.utils.getProperty(item, "system.armor.type") != 'natural' && foundry.utils.getProperty(item, "system.armor.type.value") != 'natural';
                     } else
-                        result = !(['class', 'spell', 'feat', 'action', 'lore', 'melee', 'condition', 'spellcastingEntry', 'effect'].includes(item.type));
+                        result = !(['class', 'buff', 'spell', 'feat', 'race', 'attack', 'action', 'lore', 'melee', 'condition', 'spellcastingEntry', 'effect'].includes(item.type));
 
                     return result;
                 }).map(i => {
@@ -190,7 +190,7 @@ export class LootablesApp extends HandlebarsApplicationMixin(ApplicationV2) {
         context = await super._preparePartContext(partId, context, options);
         switch (partId) {
             case "body":
-                this._prepareBodyContext(context, options);
+                await this._prepareBodyContext(context, options);
                 break;
             case "footer":
                 context.buttons = this.prepareButtons();

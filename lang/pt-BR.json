@@ -183,8 +183,6 @@
 	"MonksTokenBar.show-movement.hint": "Mostrar botões de movimento na barra",
 	"MonksTokenBar.free-vehicle-combat.name": "Movimento de veículos",
 	"MonksTokenBar.free-vehicle-combat.hint": "Permite o movimento de veículos em combate",
-	"MonksTokenBar.use-token-scaling.name": "Usar Escala de Token",
-	"MonksTokenBar.use-token-scaling.hint": "Usa a Escala do token para determinar o tamanho do token",
 
 	"MonksTokenBar.orientation.vertical": "Vertical",
 	"MonksTokenBar.orientation.horizontal": "Horizontal",

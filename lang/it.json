@@ -191,8 +191,6 @@
   "MonksTokenBar.show-movement.hint": "Mostra i pulsanti di movimento sulla Tokenbar",
   "MonksTokenBar.free-vehicle-combat.name": "Movimento Veicoli",
   "MonksTokenBar.free-vehicle-combat.hint": "Permetti il movimento dei veicoli in combattimento",
-  "MonksTokenBar.use-token-scaling.name": "Usa Ridimensionamento Token",
-  "MonksTokenBar.use-token-scaling.hint": "Usa il ridimensionamento del token per determinare la sua dimensione",
 
   "MonksTokenBar.orientation.vertical": "Verticale",
   "MonksTokenBar.orientation.horizontal": "Orizzontale",

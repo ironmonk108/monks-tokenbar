@@ -184,8 +184,6 @@
 	"MonksTokenBar.show-movement.hint": "Wyświetlanie przycisków ruchu na pasku tokenów",
 	"MonksTokenBar.free-vehicle-combat.name": "Ruch pojazdu",
 	"MonksTokenBar.free-vehicle-combat.hint": "Zezwalaj na ruch pojazdów w walce",
-	"MonksTokenBar.use-token-scaling.name": "Użyj skalowania tokenów",
-	"MonksTokenBar.use-token-scaling.hint": "Użyj skalowania tokena, aby określić jego rozmiar",
 
 	"MonksTokenBar.orientation.vertical": "Pionowy",
 	"MonksTokenBar.orientation.horizontal": "Poziomy",

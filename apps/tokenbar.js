@@ -37,9 +37,11 @@ export class TokenBar extends HandlebarsApplicationMixin(ApplicationV2) {
 
         Hooks.on('updateItem', (item, data, options) => {
             if (((game.user.isGM || setting("allow-player")) && !setting("disable-tokenbar"))) {
-                let entry = this.entries.find(t => item.actor && t.actor?.id == item.actor.id);
-                if (entry != undefined) {
-                    this.updateEntry(entry);
+                if (item.actor) {
+                    let entry = this.entries.find(t => t.actor?.id == item.actor?.id);
+                    if (entry != undefined) {
+                        this.updateEntry(entry);
+                    }
                 }
             }
         });
@@ -81,12 +83,10 @@ export class TokenBar extends HandlebarsApplicationMixin(ApplicationV2) {
 
         Hooks.on("createItem", (item) => {
             if (((game.user.isGM || setting("allow-player")) && !setting("disable-tokenbar"))) {
-                if (item.type == 'effect') {
-                    if (item.actor) {
-                        let entry = this.entries.find(t => t.actor?.id == item.actor.id);
-                        if (entry != undefined) {
-                            this.updateEntry(entry)
-                        }
+                if (item.type == 'effect' && item.actor) {
+                    let entry = this.entries.find(t => t.actor?.id == item?.actor?.id);
+                    if (entry != undefined) {
+                        this.updateEntry(entry)
                     }
                 }
             }
@@ -94,8 +94,8 @@ export class TokenBar extends HandlebarsApplicationMixin(ApplicationV2) {
 
         Hooks.on("deleteItem", (item) => {
             if (((game.user.isGM || setting("allow-player")) && !setting("disable-tokenbar"))) {
-                if (item.type == 'effect') {
-                    let entry = this.entries.find(t => t.actor?.id == item.actor.id);
+                if (item.type == 'effect' && item?.actor) {
+                    let entry = this.entries.find(t => t.actor?.id == item?.actor?.id);
                     if (entry != undefined) {
                         this.updateEntry(entry)
                     }
@@ -119,7 +119,8 @@ export class TokenBar extends HandlebarsApplicationMixin(ApplicationV2) {
         },
         actions: {
             buttonClicked: TokenBar._onButtonClick,
-            tokenClick: TokenBar._onClickToken
+            tokenClick: TokenBar._onClickToken,
+            collapse: TokenBar._onCollapseToggle
         },
     };
 
@@ -134,6 +135,25 @@ export class TokenBar extends HandlebarsApplicationMixin(ApplicationV2) {
 
     onPersistPosition(position) {
         game.user.setFlag("monks-tokenbar", "position", { left: position.left, top: position.top });
+    }
+
+    _initializeApplicationOptions(options) {
+        options = super._initializeApplicationOptions(options);
+        if (setting("allow-fade"))
+            options.classes.push("faded-ui");
+        return options;
+    }
+
+    async _renderFrame(options) {
+        const frame = await super._renderFrame(options);
+
+        const minimizeBtn = `
+        <button type="button" class="tokenbar-header-button fa-solid fa-caret-left icon" data-action="collapse"
+                data-tooltip="Collapse" aria-label="Collapse"></button>
+        `;
+        this.window.icon.insertAdjacentHTML("afterend", minimizeBtn);
+
+        return frame;
     }
 
     async _onFirstRender(context, options) {
@@ -516,6 +536,19 @@ export class TokenBar extends HandlebarsApplicationMixin(ApplicationV2) {
         return resource;
     }
 
+    getEntryImage(entry) {
+        let usePicture = setting("token-pictures");
+        let entryImage = null;
+        if (usePicture == "tokenonly") {
+            entryImage = entry.token?.texture.src || entry.actor?.prototypeToken?.texture.src;
+        } else if (usePicture == "actoronly") {
+            entryImage = entry.actor?.img;
+        } else {
+            entryImage = entry.token?.texture.src || entry.actor?.img;
+        }
+        return entryImage || "icons/svg/mystery-man.svg";
+    }
+
     async updateEntry(entry, refresh = true) {
         let diff = {};
 
@@ -528,7 +561,10 @@ export class TokenBar extends HandlebarsApplicationMixin(ApplicationV2) {
             }
         }
 
-        let viewstats = entry.actor?.getFlag('monks-tokenbar', 'stats') || MonksTokenBar.stats;
+        let viewstats = entry.actor?.getFlag('monks-tokenbar', 'stats') || MonksTokenBar.stats || [];
+        if (!(viewstats instanceof Array)) {
+            viewstats = [];
+        }
         let diffstats = {};
         let defaultColor = '#f0f0f0';
 
@@ -558,8 +594,8 @@ export class TokenBar extends HandlebarsApplicationMixin(ApplicationV2) {
             diff.stats = diffstats;
         }
 
-        if (entry.img != (setting("token-pictures") == "actor" && entry.actor != undefined ? entry.actor.img : entry.token?.texture.src || entry.actor?.img)) {
-            diff.img = (setting("token-pictures") == "actor" && entry.actor != undefined ? entry.actor.img : entry.token?.texture.src || entry.actor?.img);
+        if (entry.img != this.getEntryImage(entry)) {
+            diff.img = this.getEntryImage(entry);
             let thumb = this.thumbnails[diff.img];
             if (!thumb) {
                 try {
@@ -571,9 +607,6 @@ export class TokenBar extends HandlebarsApplicationMixin(ApplicationV2) {
             }
 
             diff.thumb = (thumb?.thumb || thumb);
-            if (setting("use-token-scaling")) {
-                diff.texture = entry.token?.texture;
-            }
         }
 
         if (entry.token && entry.movement != foundry.utils.getProperty(entry.token, "flags.monks-tokenbar.movement")) {
@@ -1005,6 +1038,10 @@ export class TokenBar extends HandlebarsApplicationMixin(ApplicationV2) {
                 entry.actor.sheet.render(true);
         }
         this.doubleclick = true;
+    }
+
+    static _onCollapseToggle(event, target) {
+        $(this.element).toggleClass("collapsed");
     }
 
     /*

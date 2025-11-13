@@ -24,7 +24,7 @@ export class MonksTokenBarAPI {
 
         let useTokens = MonksTokenBar.getTokenEntries(tokens).map(t => t.token);
 
-        if (useTokens != undefined) {
+        if (!!tokens && useTokens != undefined) {
             MonksTokenBar.changeTokenMovement(movement, useTokens);
         }else
             MonksTokenBar.changeGlobalMovement(movement);

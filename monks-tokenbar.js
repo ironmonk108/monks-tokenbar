@@ -262,6 +262,62 @@ export class MonksTokenBar {
             return await wrapped.call(this, ...args);
         });
         */
+
+        if (!game.modules.get("monks-active-tiles")?.active) {
+            patchFunc("foundry.helpers.interaction.ClientKeybindings.prototype._registerCoreKeybindings", function (wrapped, ...args) {
+                let result = wrapped(...args);
+
+                game.keybindings.actions.get("core.dismiss").onDown = async function (context) {
+                    // Cancel current drag workflow
+                    if (canvas.currentMouseManager) {
+                        canvas.currentMouseManager.interactionData.cancelled = true;
+                        canvas.currentMouseManager.cancel();
+                        return true;
+                    }
+
+                    // Save fog of war if there are pending changes
+                    if (canvas.ready) canvas.fog.commit();
+
+                    // Case 1 - dismiss an open context menu
+                    if (ui.context?.element) {
+                        await ui.context.close();
+                        return true;
+                    }
+
+                    // Case 2 - dismiss an open Tour
+                    if (foundry.nue.Tour.tourInProgress) {
+                        foundry.nue.Tour.activeTour.exit();
+                        return true;
+                    }
+
+                    // Case 3 - close open UI windows
+                    const closingApps = [];
+                    for (const app of Object.values(ui.windows)) {
+                        closingApps.push(app.close({ closeKey: true }).then(() => !app.rendered));
+                    }
+                    for (const app of foundry.applications.instances.values()) {
+                        if (app.hasFrame && !app.nonDismissible) closingApps.push(app.close({ closeKey: true }).then(() => !app.rendered));
+                    }
+                    const closedApp = (await Promise.all(closingApps)).some(c => c); // Confirm an application actually closed
+                    if (closedApp) return true;
+
+                    // Case 4 (GM) - release controlled objects (if not in a preview)
+                    if (game.view !== "game") return;
+                    const layer = canvas.activeLayer;
+                    if (layer instanceof foundry.canvas.layers.InteractionLayer) {
+                        if (layer._onDismissKey(context.event)) return true;
+                    }
+
+                    // Case 5 - toggle the main menu
+                    ui.menu.toggle();
+                    // Save the fog immediately rather than waiting for the 3s debounced save as part of commitFog.
+                    if (canvas.ready) await canvas.fog.save();
+                    return true;
+                }
+
+                return result
+            });
+        }
     }
 
     static selectGroups(choices, options) {
@@ -512,7 +568,7 @@ export class MonksTokenBar {
                 if (data.tokenid == undefined || canvas.tokens.get(data.tokenid)?.isOwner) {
                     ui.notifications.warn(data.msg);
                     if (MonksTokenBar.tokenbar != undefined) {
-                        MonksTokenBar.tokenbar.render(true);
+                        MonksTokenBar.tokenbar.render();
                     }
                 }
             } break;
@@ -615,7 +671,7 @@ export class MonksTokenBar {
                 if (tokenbar.entries[i].token)
                     tokenbar.entries[i].token._movementNotified = null;
             };
-            tokenbar.render(true);
+            tokenbar.render();
         }
 
         MonksTokenBar.displayNotification(movement);

@@ -808,7 +808,7 @@ export class SavingThrow {
                     let keys = msgtoken.keys || {};
                     let e = Object.assign({}, evt);
                     if (!e.target)
-                        e.target = evt?.target;
+                        e.target = evt?.target || { closest: () => { } };
                     e.ctrlKey = evt?.ctrlKey;
                     e.altKey = evt?.altKey;
                     e.shiftKey = evt?.shiftKey;
