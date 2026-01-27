@@ -9,7 +9,7 @@ export class PF2eRolls extends BaseRolls {
         const skills = Object.keys(this.config.skills).reduce(function (result, key) {
             result[key] = configSkills[key].label
             return result
-        }, {}) 
+        }, {})
 
         this._requestoptions = [
             { id: "attribute", text: i18n("MonksTokenBar.Attribute"), groups: { perception: i18n("PF2E.PerceptionLabel") } },
@@ -209,10 +209,16 @@ export class PF2eRolls extends BaseRolls {
         else if (request.type == 'lore') {
             let lore = actor.items.find(i => { return i.type == request.type && MonksTokenBar.slugify(i.name) == request.key; });
             if (lore != undefined) {
-                let slug = lore.name.slugify();
+                let skillName = lore.name.slugify();
                 //opts = actor.getRollOptions(["all", "skill-check", slug]);
-                rollfn = actor.skills[slug].check.roll;
-                actor = actor.skills[slug].check;
+                // the skills map expects the lore slug to be suffixed with -lore
+                // example: "Sandpoint lore" will be slugify to an expected skill
+                // "Sandpoint" will not and needs to be suffixed
+                if  (!skillName.endsWith("-lore")) {
+                  skillName = skillName + "-lore";
+                }
+                rollfn = actor.skills[skillName].check.roll;
+                actor = actor.skills[skillName].check;
             } else
                 return { id: id, error: true, msg: i18n("MonksTokenBar.ActorNoLore") };
         }
