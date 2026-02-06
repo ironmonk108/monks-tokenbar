@@ -16,6 +16,10 @@ export class DrawSteelRolls extends BaseRolls {
         return true;
     }
 
+    get showRoll() {
+        return false;
+    }
+
     roll({ id, actor, request, rollMode, fastForward = false }, callback, e) {
         let rollFn = actor.rollCharacteristic;
 
@@ -25,13 +29,20 @@ export class DrawSteelRolls extends BaseRolls {
 
         let options = {
             rollMode: rollMode, // Is not really used by draw-steel at the moment
-            evaluation: "evaluate",
+            evaluation: "message",
             event: e
         };
 
         try {
-            return rollFn.call(actor, request.key, options).then((rolls) => {
-                const roll = Array.isArray(rolls) && rolls.length ? rolls[0] : rolls;
+            return rollFn.call(actor, request.key, options).then((roll) => {
+                if (roll instanceof ChatMessage) {
+                    let msg = roll;
+                    roll = roll.system.parts.find(part => part.type === "test")?.rolls[0]
+                    msg.delete();
+                }
+                else {
+                    roll = Array.isArray(rolls) && rolls.length ? rolls[rolls.length-1] : rolls;
+                }
                 return callback(roll);
             }).catch((err) => {
                 console.error(err);
