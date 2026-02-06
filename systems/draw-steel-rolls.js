@@ -34,10 +34,22 @@ export class DrawSteelRolls extends BaseRolls {
         };
 
         try {
-            return rollFn.call(actor, request.key, options).then((roll) => {
-                if (roll instanceof ChatMessage) {
-                    let msg = roll;
-                    roll = roll.system.parts.find(part => part.type === "test")?.rolls[0]
+            return rollFn.call(actor, request.key, options).then((rolls) => {
+                let roll;
+                if (rolls instanceof ChatMessage) {
+                    let msg = rolls;
+                    switch (game.system.version) {
+                        case "0.10.0":
+                            roll = rolls.system.parts.find(part => part.type === "test")?.rolls[0];
+                            break;
+                        case "0.9.2":
+                            rolls = msg.rolls;
+                            roll = Array.isArray(rolls) && rolls.length ? rolls[rolls.length-1] : rolls;
+                            break;
+                        default:
+                            return { id: id, error: true, msg: i18n("MonksTokenBar.UnknownError") }
+                            break;
+                    }
                     msg.delete();
                 }
                 else {
