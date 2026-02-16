@@ -103,7 +103,7 @@ export class TokenBar extends HandlebarsApplicationMixin(ApplicationV2) {
             }
         });
 
-        //updateActiveEffect 
+        //updateActiveEffect
 
         this.buttons = MonksTokenBar.system.getButtons();
     }
@@ -377,7 +377,7 @@ export class TokenBar extends HandlebarsApplicationMixin(ApplicationV2) {
 
     async getCurrentTokens() {
         //log('Get current Tokens');
-        if (game.system.id == "pf2e" && setting("use-party")) {
+        if (["pf2e", "sf2e"].includes(game.system.id) && setting("use-party")) {
             this.entries = game.actors.party.members.map(a => {
                 if (!a)
                     return null;
@@ -762,7 +762,7 @@ export class TokenBar extends HandlebarsApplicationMixin(ApplicationV2) {
                 name: "MonksTokenBar.AddHeroPoint",
                 icon: '<i class="fas fa-circle-h"></i>',
                 condition: li => {
-                    if (game.system.id != "pf2e")
+                    if (!["pf2e", "sf2e"].includes(game.system.id))
                         return false;
 
                     let id = li.dataset.tokenId || li.dataset.actorId;
@@ -963,7 +963,7 @@ export class TokenBar extends HandlebarsApplicationMixin(ApplicationV2) {
     getEntry(id) {
         return this.entries.find(t => t.id === id);
     }
-    
+
     static async _onClickToken(event, target) {
         event.preventDefault();
         const li = target;

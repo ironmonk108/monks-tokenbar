@@ -57,8 +57,8 @@ export const registerSettings = function () {
 
 	let lootsheetoptions = MonksTokenBar.getLootSheetOptions();
 	let lootfolder = {};
-	
-	const dividexp = (game.system.id === "pf2e" ? "no-split" : "equal-split");
+
+	const dividexp = (["pf2e", "sf2e"].includes(game.system.id) ? "no-split" : "equal-split");
 
 	game.settings.registerMenu(modulename, 'resetPosition', {
 		name: 'Reset Position',
@@ -141,7 +141,7 @@ export const registerSettings = function () {
 		name: game.i18n.localize("MonksTokenBar.use-party.name"),
 		hint: game.i18n.localize("MonksTokenBar.use-party.hint"),
 		scope: "world",
-		config: game.system.id == "pf2e",
+		config: ["pf2e", "sf2e"].includes(game.system.id),
 		default: false,
 		type: Boolean,
 		onChange: () => { MonksTokenBar.tokenbar.refresh(); }
