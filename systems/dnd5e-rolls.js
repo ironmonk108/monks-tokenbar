@@ -13,7 +13,7 @@ export class DnD5eRolls extends BaseRolls {
         ].concat(this._requestoptions);
 
         /*
-        this._defaultSetting = mergeObject(this._defaultSetting, {
+        this._defaultSetting = foundry.utils.mergeObject(this._defaultSetting, {
             stat2: "skills.prc.passive"
         });*/
     }
@@ -33,14 +33,14 @@ export class DnD5eRolls extends BaseRolls {
                 if (msgid) {
                     let msg = game.messages.get(msgid);
                     if (msg) {
-                        let rolls = duplicate(msg.getFlag('monks-tokenbar', "rolls") || {});
+                        let rolls = foundry.utils.duplicate(msg.getFlag('monks-tokenbar', "rolls") || {});
                         let tokenid = message.getFlag('monks-tokenbar', 'tokenid');
                         rolls[tokenid] = message.rolls[0];
                         if (msg.isOwner)
                             msg.setFlag('monks-tokenbar', "rolls", rolls);
                         else
                             MonksTokenBar.emit("setRolls", { msgid, tokenid, roll: rolls[tokenid] });
-                        setProperty(msg, "flags.monks-tokenbar.rolls", rolls);
+                        foundry.utils.setProperty(msg, "flags.monks-tokenbar.rolls", rolls);
                     }
                 }
                 return false;
@@ -66,7 +66,9 @@ export class DnD5eRolls extends BaseRolls {
     }
 
     get showXP() {
-        return !game.settings.get('dnd5e', 'disableExperienceTracking');
+        if (!foundry.utils.isNewerVersion(game.system.version, "4.0"))
+            return !game.settings.get('dnd5e', 'disableExperienceTracking');
+        return game.settings.get('dnd5e', 'levelingMode') != "noxp";
     }
 
     getXP(actor) {
@@ -91,7 +93,7 @@ export class DnD5eRolls extends BaseRolls {
     defaultRequest(app) {
         //let allPlayers = (app.entries.filter(t => t.token.actor?.hasPlayerOwner).length == app.entries.length);
         //if all the tokens have zero hp, then default to death saving throw
-        let allZeroHP = app.entries.filter(t => getProperty(t.token.actor, "system.attributes.hp.value") == 0).length;
+        let allZeroHP = app.entries.filter(t => foundry.utils.getProperty(t.token.actor, "system.attributes.hp.value") == 0).length;
         if (allZeroHP == app.entries.length && allZeroHP != 0)
             return { type: 'misc', key: 'death' };
 
@@ -123,7 +125,7 @@ export class DnD5eRolls extends BaseRolls {
         for (let entry of entries) {
             for (let item of (entry.token.actor?.items || [])) {
                 if (item.type == 'tool') {
-                    let sourceID = item.getFlag("core", "sourceId") || MonksTokenBar.slugify(item.name);
+                    let sourceID = item._stats.compendiumSource || MonksTokenBar.slugify(item.name);
                     if (tools[sourceID] == undefined) {
                         tools[sourceID] = { label: item.name, count: 1 };
                     } else {
@@ -166,20 +168,28 @@ export class DnD5eRolls extends BaseRolls {
         let options = { rollMode: rollMode, fastForward: fastForward, chatMessage: false, fromMars5eChatCard: true, event: e, advantage: e.advantage, disadvantage: e.disadvantage };
         let context = actor;
         let sysRequest = request.key;
+        let config = { event: e };
+        let dialogConfig = { configure: !fastForward };
+        const speaker = ChatMessage.getSpeaker({ actor });
+        let messageConfig = { create: false, data: { speaker } }
         if (request.type == 'ability') {
-            rollfn = (actor.getFunction ? actor.getFunction("rollAbilityTest") : actor.rollAbilityTest);
+            rollfn = actor.rollAbilityCheck;
+            config.ability = request.key;
         }
         else if (request.type == 'save') {
-            rollfn = actor.rollAbilitySave;
+            rollfn = actor.rollSavingThrow;
+            config.ability = request.key;
         }
         else if (request.type == 'skill') {
             rollfn = actor.rollSkill;
+            config.skill = request.key;
         } else if (request.type == 'tool') {
             let item = actor.items.find(i => { return i.getFlag("core", "sourceId") == request.key || MonksTokenBar.slugify(i.name) == request.key; });
             if (item != undefined) {
                 context = item;
                 sysRequest = options;
                 rollfn = item.rollToolCheck;
+                config.tool = item;
             } else
                 return { id: id, error: true, msg: i18n("MonksTokenBar.ActorNoTool") };
         } else {
@@ -196,7 +206,8 @@ export class DnD5eRolls extends BaseRolls {
 
         if (rollfn != undefined) {
             try {
-                return rollfn.call(context, sysRequest, options).then((roll) => {
+                return rollfn.call(context, config, dialogConfig, messageConfig).then((rolls) => {
+                    const roll = Array.isArray(rolls) && rolls.length ? rolls[0] : rolls;
                     return callback(roll);
                 }).catch((e) => {
                     console.error(e);
@@ -234,7 +245,7 @@ export class DnD5eRolls extends BaseRolls {
 
     getValue(actor, type, key) {
         let prop = type == "skill" ? "skills" : type == "save" ? "saves" : "attributes";
-        let value = getProperty(actor, "system." + prop + "." + key + ".total");
+        let value = foundry.utils.getProperty(actor, "system." + prop + "." + key + ".total");
         return value;
     }
 }

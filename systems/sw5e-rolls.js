@@ -13,7 +13,7 @@ export class SW5eRolls extends BaseRolls {
         ].concat(this._requestoptions);
 
         /*
-        this._defaultSetting = mergeObject(this._defaultSetting, {
+        this._defaultSetting = foundry.utils.mergeObject(this._defaultSetting, {
             stat2: "skills.prc.passive"
         });*/
     }
@@ -57,7 +57,7 @@ export class SW5eRolls extends BaseRolls {
     defaultRequest(app) {
         let allPlayers = (app.entries.filter(t => t.actor?.hasPlayerOwner).length == app.entries.length);
         //if all the tokens have zero hp, then default to death saving throw
-        let allZeroHP = app.entries.filter(t => getProperty(t.actor, "system.attributes.hp.value") == 0).length;
+        let allZeroHP = app.entries.filter(t => foundry.utils.getProperty(t.actor, "system.attributes.hp.value") == 0).length;
         return (allZeroHP == app.entries.length && allZeroHP != 0 ? 'misc:death' : null) || (allPlayers ? 'skill:prc' : null);
     }
 

@@ -7,7 +7,7 @@ export class DnD4eRolls extends BaseRolls {
 
         this._config = CONFIG.DND4EBETA || CONFIG.DND4E;
 
-        let savingThrow = duplicate(this.config.def);
+        let savingThrow = foundry.utils.duplicate(this.config.def);
         delete savingThrow.ac;
 
         this._requestoptions = [
@@ -15,12 +15,6 @@ export class DnD4eRolls extends BaseRolls {
             { id: "save", text: i18n("MonksTokenBar.SavingThrow"), groups: savingThrow },
             { id: "skill", text: i18n("MonksTokenBar.Skill"), groups: this.config.skills }
         ].concat(this._requestoptions);
-
-        /*
-        this._defaultSetting = mergeObject(this._defaultSetting, {
-            stat1: "defences.ac.value",
-            stat2: "skills.prc.total"
-        });*/
     }
 
     get _supportedSystem() {

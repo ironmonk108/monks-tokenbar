@@ -21,7 +21,7 @@ export class MM3Rolls extends BaseRolls {
     }
 
     getLevel(actor) {
-        let levels = getProperty(actor, "system.puissance");
+        let levels = foundry.utils.getProperty(actor, "system.puissance");
         return levels;
     }
 

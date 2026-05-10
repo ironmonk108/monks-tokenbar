@@ -1,3 +1,91 @@
+## Version 13.02
+
+Fixed issue with Contested Roll always rolling Strength
+
+Fixed issue with Monks Active Tiles integration, requesting a roll when a token enters a tile
+
+Removed buff, race, and attack as Lootable types
+
+Fixed issue when updating, creating, or deleting an item not associated with an Actor
+
+Adding Foundry fading style to Tokenbar
+
+Adding Tokenbar collapse button
+
+Added option to display Tokenbar tokens as the Token Image, Actor Portrait, or look for the Token Image first before defaulting to Actor Portrait.
+
+Fixed an issue getting viewstats from an Actor when the viewstats aren't appropriate.
+
+Removed token scaling on the Tokenbar... because v13.
+
+Fixed issue with TokenBar API when trying to globally set movement
+
+Fixed issue where hitting escape would remove the Tokenbar windows
+
+Fixed issue where updating the Tokenbar tokens wouls cause it to de-minimize.
+
+## Version 13.01
+
+Added v13 compatibility
+
+## Version 12.04
+
+Fix issue with code to fix a DSD issue.
+
+Fixed issue with strange repositioning bug.
+
+Attempting to cut down on the number of people having issues while using an older version of D&D.
+
+## Version 12.03
+
+Tried to fix the issue with Dice So Nice not revealing roll.
+
+Fixed evaluate async warning
+
+Fixed updating the token bar when an item is equipped that might change the displayed Tokens
+
+Fixed issue where Tokenbar could be dragged off the screen
+
+Added token image scaling
+
+Fixed issue with Dice So Nice hiding tokenbar rolls when the dice are rolling
+
+Fixed issues with Burning Wheel system and an override to how handlebar grouping is added
+
+Added the roll request alert sound to use a filepicker button
+
+Fixed a warning when using the Die class directly
+
+Fixed an issue that the D&D5e system introduced by changing a setting without providing any backward compatibility.
+
+## Version 12.02
+
+Fixed issues when using Dice So Nice and figuring out when to reveal the dice
+
+Fixed double rolling of Dice So Nice in D&D 5e
+
+Fixed some more v12 deprecation issues
+
+Removing natural attacks and effects from the after combat Loot
+
+Fixed how information for lootables is collected
+
+Fixed initial Tokenbar positioning
+
+Fixed issue when deleting a token when no panning is disabled
+
+Fixed issue that the latest version of PF2e introduced when getting skills.
+
+## Version 12.01
+
+v12 compatibility
+
+Fixed issue with items being created that aren't attached to an actor
+
+Fixed issue that was preventing currency from being added to an Enhanced Journal Loot entry
+
+Added the option to allow owned vehicles to be moved during combat.
+
 ## Version 11.17
 
 Fixing a silly mistake that made redirecting rolls no longer work

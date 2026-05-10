@@ -1,13 +1,13 @@
 {
   "title": "Monk's TokenBar",
   "description": "Add a bar with all the current player tokens.  Limit movement, roll saving throws, assign XP.",
-  "version": "11.17",
+  "version": "13.02",
   "authors": [
     {
       "name": "IronMonk",
-      "discord": "ironmonk88#4075",
+      "discord": "ironmonk108",
 	  "flags": {
-		  "github": "ironmonk88",
+		  "github": "ironmonk108",
 		  "patreon": "ironmonk",
 		  "ko-fi": "ironmonk88"
 	  }
@@ -51,6 +51,11 @@
       "path": "lang/fr.json"
     },
     {
+      "lang": "it",
+      "name": "Italiano",
+      "path": "lang/it.json"
+    },
+    {
       "lang": "cn",
       "name": "简体中文",
       "path": "lang/cn.json"
@@ -81,17 +86,19 @@
   "styles": [
     "css/tokenbar.css"
   ],
-  "url": "https://github.com/ironmonk88/monks-tokenbar",
-  "download": "https://github.com/ironmonk88/monks-tokenbar/archive/11.17.zip",
-  "manifest": "https://github.com/ironmonk88/monks-tokenbar/releases/latest/download/module.json",
-  "bugs": "https://github.com/ironmonk88/monks-tokenbar/issues",
-  "allowBugReporter": true,
+  "url": "https://github.com/ironmonk108/monks-tokenbar",
+  "download": "https://github.com/ironmonk108/monks-tokenbar/archive/13.02.zip",
+  "manifest": "https://github.com/ironmonk108/monks-tokenbar/releases/latest/download/module.json",
+  "bugs": "https://github.com/ironmonk108/monks-tokenbar/issues",
   "id": "monks-tokenbar",
   "compatibility": {
-    "minimum": "11",
-    "verified": "11"
+    "minimum": "13",
+    "verified": "13"
   },
   "name": "monks-tokenbar",
-  "minimumCoreVersion": "11",
-  "compatibleCoreVersion": "11"
+  "minimumCoreVersion": "13",
+  "compatibleCoreVersion": "13",
+  "flags": {
+    "allowBugReporter": true
+  }
 }

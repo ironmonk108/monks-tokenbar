@@ -1,6 +1,8 @@
 import { MonksTokenBar, log, i18n, setting } from "../monks-tokenbar.js";
+import { ApplicationSheetConfig } from "./sheet-configure.js";
+const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api
 
-export class ContestedRollApp extends Application {
+export class ContestedRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
     constructor(entries, options = {}) {
         super(options);
         this.opts = options;
@@ -12,7 +14,7 @@ export class ContestedRollApp extends Application {
 
         this.requestoptions = this.requestoptions.filter(g => g.groups);
         for (let attr of this.requestoptions) {
-            attr.groups = duplicate(attr.groups);
+            attr.groups = foundry.utils.duplicate(attr.groups);
             for (let [k, v] of Object.entries(attr.groups)) {
                 attr.groups[k] = v?.label || v;
             }
@@ -30,42 +32,138 @@ export class ContestedRollApp extends Application {
         this.entries = this.entries.map(e => {
             if (e.token == undefined)
                 e.token = available.shift();
-            e.request = MonksTokenBar.findBestRequest(e.request, this.requestoptions);
+            e.request = MonksTokenBar.findBestRequest(e.request, this.requestoptions)[0];
             return e;
         });
 
         this.callback = options.callback;
     }
 
-    static get defaultOptions() {
-       // let top = ($('#tokenbar').position()?.top || $('#hotbar').position()?.top || 300) - 260;
-        return mergeObject(super.defaultOptions, {
-            id: "contestedroll",
-            title: i18n("MonksTokenBar.ContestedRoll"),
-            template: "./modules/monks-tokenbar/templates/contestedroll.html",
-            width: 450,
-            //top: top,
-            popOut: true
-        });
+    static DEFAULT_OPTIONS = {
+        id: "contestedroll",
+        tag: "form",
+        classes: ["sheet", "contestedroll"],
+        sheetConfig: true,
+        window: {
+            contentClasses: ["standard-form"],
+            icon: "fas fa-people-arrows",
+            resizable: false,
+            title: "MonksTokenBar.ContestedRoll",
+            controls: [{
+                icon: "fa-solid fa-gear",
+                label: "SHEETS.ConfigureSheet",
+                action: "configureSheet",
+                visible: true
+            }]
+        },
+        actions: {
+            saveMacro: ContestedRollApp.saveToMacro,
+            copyMacro: ContestedRollApp.copyMacro,
+            requestRollPlusRoll: ContestedRollApp.requestRollPlusRoll,
+            requestRoll: ContestedRollApp.requestRoll,
+            removeToken: ContestedRollApp.removeToken,
+            configureSheet: ContestedRollApp.onConfigureSheet,
+        },
+        position: {
+            width: 450
+        }
+    };
+
+    static PARTS = {
+        body: { template: "./modules/monks-tokenbar/templates/contestedroll/contestedroll.html" },
+        footer: { template: "templates/generic/form-footer.hbs" }
+    };
+
+    _initializeApplicationOptions(options) {
+        options = super._initializeApplicationOptions(options);
+        const { colorScheme } = game.settings.get("core", "uiConfig");
+        const theme = game.user.getFlag("monks-tokenbar", "themes") || {};
+        options.classes.push("themed", `theme-${theme.contestedroll || colorScheme.applications || "dark"}`);
+        return options;
     }
 
-    getData(options) {
-        return {
+    async _preparePartContext(partId, context, options) {
+        context = await super._preparePartContext(partId, context, options);
+        switch (partId) {
+            case "body":
+                this._prepareBodyContext(context, options);
+                break;
+            case "footer":
+                context.buttons = this.prepareButtons();
+        }
+
+        return context;
+    }
+
+    _prepareBodyContext(context, options) {
+        return foundry.utils.mergeObject(context, {
             entries: this.entries,
             rollmode: this.rollmode,
             options: this.requestoptions,
             hidenpcname: this.hidenpcname,
             flavor: this.flavor,
-        };
+        });
     }
 
-    removeToken(e) {
-        const idx = parseInt($(e.currentTarget).attr('data-index'));
+    prepareButtons() {
+        return [
+            {
+                type: "button",
+                icon: "fas fa-save",
+                label: "MonksTokenBar.SaveToMacro",
+                action: "saveMacro",
+                cssClass: "small-button"
+            },
+            {
+                type: "button",
+                icon: "fas fa-copy",
+                label: "MonksTokenBar.CopyMacro",
+                action: "copyMacro",
+                cssClass: "small-button"
+            },
+            {
+                type: "button",
+                icon: "fas fa-dice",
+                label: "MonksTokenBar.RequestWithRoll",
+                action: "requestRollPlusRoll"
+            },
+            {
+                type: "button",
+                icon: "fas fa-receipt",
+                label: "MonksTokenBar.Request",
+                action: "requestRoll"
+            }
+        ];
+    }
+
+    static onConfigureSheet(event) {
+        event.stopPropagation(); // Don't trigger other events
+        if (event.detail > 1) return; // Ignore repeated clicks
+
+        new ApplicationSheetConfig({
+            type: "contestedroll",
+            position: {
+                top: this.position.top + 40,
+                left: this.position.left + ((this.position.width - 450) / 2)
+            }
+        }).render({ force: true });
+    }
+
+    static removeToken(event, target) {
+        let idx = parseInt(target.closest(".item").dataset.index);
         this.entries[idx].token = null;
         this.render(true);
     }
 
-    async requestRoll(roll, evt) {
+    static requestRoll(event, target) {
+        this.doRequestRoll(event, false);
+    }
+
+    static requestRollPlusRoll(event, target) {
+        this.doRequestRoll(event, true);
+    }
+
+    async doRequestRoll(event, roll) {
         let msg = null;
         if (this.entries[0].token != undefined && this.entries[1].token != undefined) {
             let msgEntries = this.entries.map((item, index) => {
@@ -93,7 +191,7 @@ export class ContestedRollApp extends Application {
                     uuid: item.token.document?.uuid || item.token.uuid,
                     actorid: actor.id,
                     requests: requests,
-                    icon: (VideoHelper.hasVideoExtension(item.token?.document?.texture.src) || !item.token?.document?.texture ? actor.img : item.token.document.texture.src),
+                    icon: (foundry.helpers.media.VideoHelper.hasVideoExtension(item.token?.document?.texture.src) || !item.token?.document?.texture ? actor.img : item.token.document.texture.src),
                     name: name,
                     realname: item.token.name,
                     showname: actor.hasPlayerOwner || this.hidenpcname !== true,
@@ -121,7 +219,7 @@ export class ContestedRollApp extends Application {
 
             Hooks.callAll('monks-tokenbar.requestContested', requestdata);
 
-            const html = await renderTemplate("./modules/monks-tokenbar/templates/contestedrollchatmsg.html", requestdata);
+            const html = await foundry.applications.handlebars.renderTemplate("./modules/monks-tokenbar/templates/contestedroll/chat-message.html", requestdata);
 
             delete requestdata.tokens;
             delete requestdata.canGrab;
@@ -154,10 +252,10 @@ export class ContestedRollApp extends Application {
                 chatData.whisper = requestedPlayers;
 
             //chatData.flags["monks-tokenbar"] = {"testmsg":"testing"};
-            setProperty(chatData, "flags.monks-tokenbar", requestdata);
+            foundry.utils.setProperty(chatData, "flags.monks-tokenbar", requestdata);
             msg = await ChatMessage.create(chatData, {});
             msg.mtb_callback = this.opts.callback;
-            if (setting('request-roll-sound-file') != '' && rollmode != 'selfroll' && roll !== false)
+            if (setting('request-roll-sound-file') != '' && rollmode != 'selfroll' && roll !== true)
                 MonksTokenBar.playSound(setting('request-roll-sound-file'), requestedPlayers);
             this.requestingResults = true;
             this.close();
@@ -166,7 +264,7 @@ export class ContestedRollApp extends Application {
                 msg.setFlag('monks-tokenbar', 'active-tiles', this['active-tiles']);
 
             if (roll === true)
-                ContestedRoll.onRollAll('all', msg, evt);
+                ContestedRoll.onRollAll('all', msg, event);
             else {
                 let ids = this.entries.filter(e => e.fastForward).map(e => e.id);
                 if (ids.length > 0)
@@ -178,50 +276,41 @@ export class ContestedRollApp extends Application {
         return msg;
     }
 
-    activateListeners(html) {
-        super.activateListeners(html);
+    async _onRender(context, options) {
+        await super._onRender(context, options);
 
-        $('.item-delete', html).click($.proxy(this.removeToken, this));
+        $('#monks-tokenbar-flavor', this.element).blur(e => this.flavor = $(e.currentTarget).val());
+        $('#contestedroll-hidenpc', this.element).change(e => this.hidenpcname = $(e.currentTarget).is(':checked'));
 
-        $('.dialog-button.request', html).click($.proxy(this.requestRoll, this));
-        $('.dialog-button.request-roll', html).click($.proxy(this.requestRoll, this, true));
-        $('.dialog-button.save-macro', html).click(this.saveToMacro.bind(this));
-        $('.dialog-button.copy-macro', html).click(this.copyMacro.bind(this));
-
-        $('#monks-tokenbar-flavor', html).blur($.proxy(function (e) {
-            this.flavor = $(e.currentTarget).val();
-        }, this));
-
-        $('#contestedroll-hidenpc', html).change($.proxy(function (e) {
-            this.hidenpcname = $(e.currentTarget).is(':checked');
-        }, this));
-
-        $('.request-roll', html).change($.proxy(function (e) {
+        $('.request-roll', this.element).change(e => {
             let value = $(e.currentTarget).val();
             let parts = value.split(":");
             let type = parts.length > 1 ? parts[0] : "";
             let key = parts.length > 1 ? parts[1] : parts[0];
             this.entries[e.target.dataset.index].request = { type, key, slug: `${type}${type ? ':' : ''}${key}` };
-        }, this));
-        $('#contestedroll-rollmode', html).change($.proxy(function (e) {
-            this.rollmode = $(e.currentTarget).val();
-        }, this));
+        });
+        $('#contestedroll-rollmode', this.element).change(e => this.rollmode = $(e.currentTarget).val());
+
+        $('.small-button', this.element).each(function () {
+            $(this).attr("data-tooltip", $("span", this).html());
+            $("span", this).remove();
+        });
 
         // Not sure why the contested roll value isn't being displayed.  The value is there, but the select isn't displaying it.
         window.setTimeout(() => { 
-            $('.request-roll[data-index="0"]', html).val(this.entries[0].request[0].slug);
-            $('.request-roll[data-index="1"]', html).val(this.entries[1].request[0].slug);
+            $('.request-roll[data-index="0"]', this.element).val(this.entries[0].request.slug);
+            $('.request-roll[data-index="1"]', this.element).val(this.entries[1].request.slug);
         }, 100);
     };
 
-    async copyMacro() {
+    static async copyMacro() {
         //copy the request to the clipboard
         let macroCmd = `game.MonksTokenBar.requestContestedRoll({token:${this.entries[0].token ? `'${this.entries[0].token?.name}'` : "null"}, request:${this.entries[0].request ? JSON.stringify(this.entries[0].request) : 'null'}},{token:${this.entries[1].token ? `'${this.entries[1].token?.name}'` : "null"}, request:${this.entries[1].request ? JSON.stringify(this.entries[1].request) : 'null'}},{silent:false, fastForward:false${this.flavor != undefined ? ", flavor:\"" + this.flavor.replaceAll("\"", "`") + "\"" : ''}, rollMode:'${this.rollmode}'})`;
         await game.clipboard.copyPlainText(macroCmd);
         ui.notifications.info(i18n("MonksTokenBar.MacroCopied"));
     }
 
-    async saveToMacro() {
+    static async saveToMacro() {
         let name = "Contested Roll";
 
         let folder = game.folders.find(f => { return f.type == "Macro" && f.name == "Monk's Tokenbar" });
@@ -234,6 +323,11 @@ export class ContestedRollApp extends Application {
         const macro = await Macro.create({ name: name, type: "script", scope: "global", command: macroCmd, folder: folder.id });
         macro.sheet.render(true);
     }
+
+    async close(options = {}) {
+        await super.close(options);
+        delete MonksTokenBar.system.contestedroll;
+    }
 }
 
 export class ContestedRoll {
@@ -241,7 +335,7 @@ export class ContestedRoll {
      *         if (!game.user.isGM) {
             MonksTokenBar.emit('rollability', { type: 'contestedroll', senderId: game.user.id, response: [{ actorid: actorid, roll: roll }], msgid: message.id });
         } else {
-            const revealDice = game.dice3d ? game.settings.get("dice-so-nice", "immediatelyDisplayChatMessages") : true;
+            const revealDice = MonksTokenBar.revealDice();
             await ContestedRoll.updateContestedRoll([{ actorid: actorid, roll: roll }], message, revealDice && !fastForward);
         }*/
     static async rollDice(dice) {
@@ -268,18 +362,18 @@ export class ContestedRoll {
             } else if (rollmode == 'blindroll')
                 cantSee = owners;
 
-            if (game.dice3d != undefined && roll instanceof Roll && roll.ignoreDice !== true && MonksTokenBar.system.showRoll && !game.settings.get("core", "noCanvas")) {
+            if (game.dice3d != undefined && roll instanceof Roll && roll.ignoreDice !== true && MonksTokenBar.system.showRoll && !game.settings.get("core", "noCanvas") && game.system.id != "dnd5e") {
                 let promises = [game.dice3d.showForRoll(roll, game.user, true, canSee, cantSee.includes(game.user.id), (rollmode == 'selfroll' ? msgId : null))];
                 if (cantSee.length) {
                     roll.ghost = true;
                     promises.push(game.dice3d.showForRoll(roll, game.user, true, cantSee, canSee.includes(game.user.id), null));
                 }
                 finishroll = Promise.all(promises).then(() => {
-                    return { id: id, reveal: true, userid: game.userId };
+                    return { id: id, roll: roll, reveal: true, userid: game.userId };
                 });
             } else {
                 finishroll = new Promise((resolve) => {
-                    resolve({ id: id, reveal: true, userid: game.userId })
+                    resolve({ id: id, roll: roll, reveal: true, userid: game.userId })
                 });
             }
             const sound = MonksTokenBar.getDiceSound();
@@ -307,17 +401,22 @@ export class ContestedRoll {
                         let value = MonksTokenBar.system.getValue(actor, r.type, r.key, e);
                         let label = r.name + (value != undefined ? ` (${value > 0 ? "+" : ""}${value})` : '');
                         return {
+                            action: MonksTokenBar.slugify(r.type + "-" + r.key),
                             label: label,
                             callback: () => r
                         }
                     });
-                    request = await Dialog.wait({
-                        title: "Please pick a roll",
+                    request = await foundry.applications.api.DialogV2.wait({
+                        window: {
+                            title: "Please pick a roll",
+                        },
+                        position: { width: 300 },
+                        classes: ["savingthrow-picker"],
                         content: "",
                         focus: true,
                         close: () => { return null; },
                         buttons: buttons
-                    }, { classes: ["savingthrow-picker"], width: 300 });
+                    });
                 }
             }
 
@@ -366,7 +465,7 @@ export class ContestedRoll {
                     let keys = msgtoken.keys || {};
                     let e = Object.assign({}, evt);
                     if (!e.target)
-                        e.target = evt?.target;
+                        e.target = evt?.target || { closest: () => { } };
                     e.ctrlKey = evt?.ctrlKey;
                     e.altKey = evt?.altKey;
                     e.shiftKey = evt?.shiftKey;
@@ -400,7 +499,7 @@ export class ContestedRoll {
                     });
                 }
             } else {
-                const revealDice = game.dice3d ? game.settings.get("dice-so-nice", "immediatelyDisplayChatMessages") : true;
+                const revealDice = MonksTokenBar.revealDice();
                 return await ContestedRoll.updateMessage(response, message, revealDice);
             }
         });
@@ -417,23 +516,26 @@ export class ContestedRoll {
 
         for (let update of updates) {
             if (update != undefined) {
-                let msgtoken = duplicate(message.getFlag('monks-tokenbar', 'token' + update.id));
+                let msgtoken = foundry.utils.duplicate(message.getFlag('monks-tokenbar', 'token' + update.id));
                 log('updating actor', msgtoken, update.roll);
 
                 if (update.roll) {
                     let tooltip = '';
-                    if (update.roll instanceof Roll) {
-                        msgtoken.roll = update.roll.toJSON();
+                    let roll = update.roll;
+                    if (roll instanceof Array)
+                        roll = roll[0];
+                    if (roll instanceof Roll) {
+                        msgtoken.roll = roll.toJSON();
                         if (msgtoken.roll.terms.length)
-                            msgtoken.roll.terms = duplicate(msgtoken.roll.terms);
+                            msgtoken.roll.terms = foundry.utils.duplicate(msgtoken.roll.terms);
                         for (let i = 0; i < msgtoken.roll.terms.length; i++) {
-                            if (msgtoken.roll.terms[i] instanceof RollTerm)
+                            if (msgtoken.roll.terms[i] instanceof foundry.dice.terms.RollTerm)
                                 msgtoken.roll.terms[i] = msgtoken.roll.terms[i].toJSON();
                         }
-                        msgtoken.total = update.roll.total;
+                        msgtoken.total = roll.total;
                         msgtoken.reveal = update.reveal || reveal;
                         msgtoken.request = update.request;
-                        tooltip = await update.roll.getTooltip();
+                        tooltip = await roll.getTooltip();
 
                         Hooks.callAll('tokenBarUpdateRoll', this, message, update.id, msgtoken.roll);
                     }
@@ -474,7 +576,7 @@ export class ContestedRoll {
 
         if (game.system.id == 'dnd5e') {
             let rolls = [];
-            for (let key of Object.keys(getProperty(message, "flags.monks-tokenbar"))) {
+            for (let key of Object.keys(foundry.utils.getProperty(message, "flags.monks-tokenbar"))) {
                 if (key.startsWith('token')) {
                     let token = flags[key] || message.flags['monks-tokenbar'][key];
                     if (token.roll) {
@@ -536,7 +638,7 @@ export class ContestedRoll {
                 if (restart.action.data.usetokens == 'fail' || restart.action.data.usetokens == 'succeed') {
                     result.tokens = result.tokenresults.filter(r => r.passed == (restart.action.data.usetokens == 'succeed'));
                 } else {
-                    result.tokens = duplicate(result.tokenresults);
+                    result.tokens = foundry.utils.duplicate(result.tokenresults);
                 }
                 for (let i = 0; i < result.tokens.length; i++) {
                     result.tokens[i] = await fromUuid(result.tokens[i].uuid);
@@ -571,8 +673,16 @@ export class ContestedRoll {
         } else {
             let flags = {};
             for (let update of updates) {
-                let msgtoken = duplicate(message.getFlag('monks-tokenbar', 'token' + update.id));
+                let msgtoken = foundry.utils.duplicate(message.getFlag('monks-tokenbar', 'token' + update.id));
                 msgtoken.reveal = true;
+                msgtoken.tempreveal = true;
+                if (!msgtoken.roll && update.roll) {
+                    let roll = update.roll;
+                    if (roll instanceof Array)
+                        roll = roll[0]; //if multiple rolls, just take the first one
+                    //if the roll was not set, then set it
+                    msgtoken.roll = roll instanceof Roll ? roll : Roll.fromData(roll);
+                }
                 flags["token" + update.id] = msgtoken;
                 log("Finish Rolling", msgtoken);
             }
@@ -598,7 +708,7 @@ export class ContestedRoll {
             let j = (i + 1) % 2;
             let passed = (!allRolled ? 'waiting' : (tokens[i].roll.total > tokens[j].roll.total ? 'won' : (tokens[i].roll.total < tokens[j].roll.total ? 'failed' : 'tied')));
             if (tokens[i].passed != passed) {
-                let msgtoken = duplicate(tokens[i]);
+                let msgtoken = foundry.utils.duplicate(tokens[i]);
                 msgtoken.passed = passed;
                 flags['token' + msgtoken.id] = msgtoken;
             }
@@ -631,7 +741,7 @@ export class ContestedRoll {
         for (let i = 0; i < 2; i++) {
             let passed = (tokens[i].id == tokenid ? 'won' : 'failed');
             if(tokens[i].passed != passed) {
-                let msgtoken = duplicate(tokens[i]);
+                let msgtoken = foundry.utils.duplicate(tokens[i]);
                 msgtoken.passed = passed;
                 flags['token' + msgtoken.id] = msgtoken;
             }
@@ -683,7 +793,7 @@ export class ContestedRoll {
             if (actor instanceof Actor && actor.type == "character") {
                 const heroPointCount = actor.heroPoints.value;
                 if (heroPointCount)
-                    await token.actor.update({ "system.resources.heroPoints.value": Math.clamped(heroPointCount - 1, 0, 3) });
+                    await token.actor.update({ "system.resources.heroPoints.value": Math.clamp(heroPointCount - 1, 0, 3) });
                 else {
                     return ui.notifications.warn("Does not have a hero point");
                 }
@@ -693,13 +803,13 @@ export class ContestedRoll {
         }
 
         const oldRoll = msgToken.roll;
-        const newData = deepClone(oldRoll.data);
+        const newData = foundry.utils.deepClone(oldRoll.data);
         const newOptions = { ...oldRoll.options, isReroll: !0 };
         const formula = oldRoll.formula.replace("2d20kh", "1d20").replace("2d20kl", "1d20");
-        const newRoll = await new Roll(formula, newData, newOptions).evaluate({ async: !0 });
+        const newRoll = await new Roll(formula, newData, newOptions).evaluate();
         const rollmode = message.getFlag("monks-tokenbar", "rollmode");
 
-        if (game.dice3d != undefined && newRoll instanceof Roll && newRoll.ignoreDice !== true && MonksTokenBar.system.showRoll && !game.settings.get("core", "noCanvas")) {
+        if (game.dice3d != undefined && newRoll instanceof Roll && newRoll.ignoreDice !== true && MonksTokenBar.system.showRoll && !game.settings.get("core", "noCanvas") && game.system.id != "dnd5e") {
             let canSee = (rollmode == 'roll' ? null : ChatMessage.getWhisperRecipients("GM").map(w => { return w.id }));
             let cantSee = [];
             let owners = actor.ownership.default == CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER ?
@@ -769,6 +879,9 @@ export class ContestedRoll {
 
         let tooltip = await roll.getTooltip();
         let tooltipElem = $(tooltip);
+        if (tooltipElem.hasClass("dice-tooltip-collapser")) {
+            tooltipElem = $(".dice-tooltip", tooltipElem);
+        }
         if (tooltipElem.hasClass("dice-tooltip")) {
             tooltipElem = $(".tooltip-part", tooltipElem).toggleClass("ignored", keptRoll == oldRoll);
         }
@@ -783,7 +896,7 @@ export class ContestedRoll {
 Hooks.on('controlToken', (token, delta) => {
     if (MonksTokenBar && MonksTokenBar.system && token.document.actor?.type != "group") {
         let contestedroll = MonksTokenBar.system.contestedroll;
-        if (game.user.isGM && delta === true && contestedroll != undefined && contestedroll._state != -1) {
+        if (game.user.isGM && delta === true && contestedroll != undefined && contestedroll.state != -1) {
             for (let entry of contestedroll.entries) {
                 if (entry.token == undefined) {
                     entry.token = token;
@@ -803,14 +916,14 @@ Hooks.on("renderContestedRollApp", (app, html) => {
     $('#contestedroll-rollmode', html).val(app.rollmode);
 });
 
-Hooks.on("renderChatMessage", async (message, html, data) => {
-    const svgCard = html.find(".monks-tokenbar.contested-roll");
+Hooks.on("renderChatMessageHTML", async (message, html, data) => {
+    const svgCard = $(".monks-tokenbar.contested-roll", html);
     if (svgCard.length !== 0) {
-        html.addClass("monks-tokenbar");
+        $(html).addClass("monks-tokenbar");
         if (!game.user.isGM)
-            html.find(".gm-only").remove();
+            $(".gm-only", html).remove();
         if (game.user.isGM)
-            html.find(".player-only").remove();
+            $(".player-only", html).remove();
 
         //let dc = message.getFlag('monks-tokenbar', 'dc');
         let rollmode = message.getFlag('monks-tokenbar', 'rollmode');

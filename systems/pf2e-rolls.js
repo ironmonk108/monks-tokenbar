@@ -5,7 +5,11 @@ export class PF2eRolls extends BaseRolls {
     constructor() {
         super();
 
-        const { lore, ...skills } = this.config.skillList
+        const configSkills = this.config.skills;
+        const skills = Object.keys(this.config.skills).reduce(function (result, key) {
+            result[key] = configSkills[key].label
+            return result
+        }, {}) 
 
         this._requestoptions = [
             { id: "attribute", text: i18n("MonksTokenBar.Attribute"), groups: { perception: i18n("PF2E.PerceptionLabel") } },
@@ -15,7 +19,7 @@ export class PF2eRolls extends BaseRolls {
         ].concat(this._requestoptions);
 
         /*
-        this._defaultSetting = mergeObject(this._defaultSetting, {
+        this._defaultSetting = foundry.utils.mergeObject(this._defaultSetting, {
             stat2: "attributes.perception.value + 10"
         });*/
     }
@@ -63,7 +67,7 @@ export class PF2eRolls extends BaseRolls {
         let lore = {};
 
         for (let entry of entries) {
-            for (let item of (entry.token.actor?.items || [])) {
+            for (let item of (entry.token.actor?.items || entry.token?.items || [])) {
                 if (item.type == 'lore') {
                     let sourceID = MonksTokenBar.slugify(item.name);
                     if (lore[sourceID] == undefined) {
@@ -239,9 +243,9 @@ export class PF2eRolls extends BaseRolls {
     }
 
     async checkXP(actor) {
-        if (setting("send-levelup-whisper") && actor.system.details.xp.value >= actor.system.details.xp.max) {
-            const level = parseInt(getProperty(actor, "system.details.level.value")) + 1;
-            const html = await renderTemplate("./modules/monks-tokenbar/templates/levelup.html", { level: level, name: actor.name, xp: actor.system.details.xp.value });
+        if (setting("send-levelup-whisper") && game.user.isTheGM && actor.system.details.xp.value >= actor.system.details.xp.max) {
+            const level = parseInt(foundry.utils.getProperty(actor, "system.details.level.value")) + 1;
+            const html = await foundry.applications.handlebars.renderTemplate("./modules/monks-tokenbar/templates/levelup.html", { level: level, name: actor.name, xp: actor.system.details.xp.value });
             ChatMessage.create({
                 user: game.user.id,
                 content: html,
@@ -255,7 +259,7 @@ export class PF2eRolls extends BaseRolls {
 
     getValue(actor, type, key) {
         let prop = type == "skill" ? "skills" : type == "save" ? "saves" : "attributes";
-        let value = getProperty(actor, prop + "." + key + ".mod");
+        let value = foundry.utils.getProperty(actor, prop + "." + key + ".mod");
         return value;
     }
 }
