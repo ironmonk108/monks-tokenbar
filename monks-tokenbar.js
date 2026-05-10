@@ -11,6 +11,7 @@ import { BaseRolls } from "./systems/base-rolls.js";
 import { DS4Rolls } from "./systems/ds4-rolls.js";
 import { DnD5eRolls } from "./systems/dnd5e-rolls.js";
 import { DnD4eRolls } from "./systems/dnd4e-rolls.js";
+import { DrawSteelRolls } from "./systems/draw-steel-rolls.js";
 import { D35eRolls } from "./systems/d35e-rolls.js";
 import { PF1Rolls } from "./systems/pf1-rolls.js";
 import { PF2eRolls } from "./systems/pf2e-rolls.js";
@@ -21,6 +22,7 @@ import { SwadeRolls } from "./systems/swade-rolls.js";
 import { SW5eRolls } from "./systems/sw5e-rolls.js";
 import { CoC7Rolls } from "./systems/coc7-rolls.js";
 import { T2K4ERolls } from "./systems/t2k4e-rolls.js";
+
 
 
 export let debug = (...args) => {
@@ -1255,6 +1257,8 @@ Hooks.on("setup", () => {
             MonksTokenBar.system = new CoC7Rolls(); break;
         case 't2k4e':
             MonksTokenBar.system = new T2K4ERolls(); break; 
+        case 'draw-steel':
+            MonksTokenBar.system = new DrawSteelRolls(); break;
     }
 
     MonksTokenBar.system.constructor.activateHooks();
