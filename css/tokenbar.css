@@ -926,6 +926,10 @@ body.system-pf2e .monks-tokenbar.chat-card .dice-tooltip[data-visibility=gm]:not
     display: none;
 }
 
+body.system-sf2e .monks-tokenbar.chat-card .dice-tooltip[data-visibility=gm]:not(.expanded) {
+    display: none;
+}
+
 .monks-tokenbar li.item .item-roll {
     display: block;
     width: 30px;
