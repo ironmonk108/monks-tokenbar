@@ -10,12 +10,13 @@ export const divideXpOptions = {
 };
 
 export const registerSettings = function () {
-    // Register any custom module settings here
+	// Register any custom module settings here
 	let modulename = "monks-tokenbar";
 
 	let imageoptions = {
 		'token': game.i18n.localize("MonksTokenBar.token-pictures.token"),
 		'actor': game.i18n.localize("MonksTokenBar.token-pictures.actor"),
+		'tokenonly': game.i18n.localize("MonksTokenBar.token-pictures.tokenonly"),
 	};
 
 	let orientation = {
@@ -52,7 +53,7 @@ export const registerSettings = function () {
 		"LIMITED": "Limited",
 		"OBSERVER": "Observer",
 		"OWNER": "Owner"
-    }
+	}
 
 	let lootsheetoptions = MonksTokenBar.getLootSheetOptions();
 	let lootfolder = {};
@@ -161,6 +162,7 @@ export const registerSettings = function () {
 		config: true,
 		default: false,
 		type: Boolean,
+		requiresReload: true
 	});
 
 	game.settings.register(modulename, "show-vertical", {
@@ -171,9 +173,11 @@ export const registerSettings = function () {
 		default: "false",
 		type: String,
 		onChange: (val) => {
-			MonksTokenBar.tokenbar.element.toggleClass("vertical", val == "true");
+			if (MonksTokenBar.tokenbar?.element)
+				$(MonksTokenBar.tokenbar.element).toggleClass("vertical", val == "true");
 		},
 		choices: orientation,
+		requiresReload: true
 	});
 
 	game.settings.register(modulename, "dblclick-action", {
@@ -185,15 +189,6 @@ export const registerSettings = function () {
 		choices: dblclickoptions,
 		type: String,
 		requiresReload: true
-	});
-
-	game.settings.register(modulename, "use-token-scaling", {
-		name: game.i18n.localize("MonksTokenBar.use-token-scaling.name"),
-		hint: game.i18n.localize("MonksTokenBar.use-token-scaling.hint"),
-		scope: "client",
-		config: true,
-		default: false,
-		type: Boolean,
 	});
 
 	//------------------------------------Icon settings--------------------------------------------
@@ -429,6 +424,9 @@ export const registerSettings = function () {
 		default: "monks-enhanced-journal",
 		choices: lootsheetoptions,
 		type: String,
+		onChange: () => {
+			ui.controls.render({ force: true, reset: true });
+		}
 	});
 	game.settings.register(modulename, "loot-entity", {
 		name: game.i18n.localize("MonksTokenBar.loot-entity.name"),
@@ -523,6 +521,16 @@ export const registerSettings = function () {
 		type: Boolean
 	});
 
+	game.settings.register(modulename, "allow-fade", {
+		name: i18n("MonksTokenBar.allow-fade.name"),
+		hint: i18n("MonksTokenBar.allow-fade.hint"),
+		scope: "client",
+		config: true,
+		default: false,
+		type: Boolean,
+		requiresReload: true
+	});
+
 	game.settings.register(modulename, "tokenbar-collapsed", {
 		scope: "client",
 		config: false,
@@ -549,44 +557,4 @@ export const registerSettings = function () {
 		default: { default: true },
 		type: Object,
 	});
-
-	//outdated
-	game.settings.register(modulename, "stat1-icon", {
-		name: game.i18n.localize("MonksTokenBar.stat1-icon.name"),
-		hint: game.i18n.localize("MonksTokenBar.stat1-icon.hint"),
-		scope: "world",
-		config: false,
-		default: null,//icon1, //MonksTokenBar.system._defaultSetting.icon1,
-		type: String,
-		requiresReload: true
-	});
-	game.settings.register(modulename, "stat1-resource", {
-		name: game.i18n.localize("MonksTokenBar.stat1-resource.name"),
-		hint: game.i18n.localize("MonksTokenBar.stat1-resource.hint"),
-		scope: "world",
-		config: false,
-		default: null, //stat1, //MonksTokenBar.system._defaultSetting.stat1,
-		type: String,
-		requiresReload: true
-	});
-	game.settings.register(modulename, "stat2-icon", {
-		name: game.i18n.localize("MonksTokenBar.stat2-icon.name"),
-		hint: game.i18n.localize("MonksTokenBar.stat2-icon.hint"),
-		scope: "world",
-		config: false,
-		default: null, //icon2, //MonksTokenBar.system._defaultSetting.icon2,
-		type: String,
-		//choices: imageoptions,
-		requiresReload: true
-	});
-	game.settings.register(modulename, "stat2-resource", {
-		name: game.i18n.localize("MonksTokenBar.stat2-resource.name"),
-		hint: game.i18n.localize("MonksTokenBar.stat2-resource.hint"),
-		scope: "world",
-		config: false,
-		default: null, //stat2, //MonksTokenBar.system._defaultSetting.stat2,
-		type: String,
-		requiresReload: true
-	});
-
 };

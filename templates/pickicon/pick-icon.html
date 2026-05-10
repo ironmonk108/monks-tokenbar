@@ -1,0 +1,8 @@
+<div class="font-picker">
+    <input type="text" class="search-icons" placeholder="Filter icons" />
+    <section class="icon-list">
+        {{#each fonts as |icon i|}}
+        <button type="button" class="inline-control icon fa-solid {{icon}}" data-value="{{icon}}" data-action="selectIcon"></button>
+        {{/each}}
+    </section>
+</div>

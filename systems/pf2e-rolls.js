@@ -67,7 +67,7 @@ export class PF2eRolls extends BaseRolls {
         let lore = {};
 
         for (let entry of entries) {
-            for (let item of (entry.token.actor?.items || [])) {
+            for (let item of (entry.token.actor?.items || entry.token?.items || [])) {
                 if (item.type == 'lore') {
                     let sourceID = MonksTokenBar.slugify(item.name);
                     if (lore[sourceID] == undefined) {
@@ -245,7 +245,7 @@ export class PF2eRolls extends BaseRolls {
     async checkXP(actor) {
         if (setting("send-levelup-whisper") && game.user.isTheGM && actor.system.details.xp.value >= actor.system.details.xp.max) {
             const level = parseInt(foundry.utils.getProperty(actor, "system.details.level.value")) + 1;
-            const html = await renderTemplate("./modules/monks-tokenbar/templates/levelup.html", { level: level, name: actor.name, xp: actor.system.details.xp.value });
+            const html = await foundry.applications.handlebars.renderTemplate("./modules/monks-tokenbar/templates/levelup.html", { level: level, name: actor.name, xp: actor.system.details.xp.value });
             ChatMessage.create({
                 user: game.user.id,
                 content: html,

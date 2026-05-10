@@ -12,12 +12,6 @@ export class SwadeRolls extends BaseRolls {
         this._requestoptions = [
             { id: "ability", text: i18n("MonksTokenBar.Attribute"), groups: attributes }
         ].concat(this._requestoptions);
-
-        /*
-        this._defaultSetting = foundry.utils.mergeObject(this._defaultSetting, {
-            stat1: "stats.toughness.value"//,
-            //stat2: "skills.per.mod"
-        });*/
     }
 
     get _supportedSystem() {

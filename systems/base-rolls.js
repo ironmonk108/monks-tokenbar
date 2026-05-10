@@ -92,12 +92,13 @@ export class BaseRolls {
 
     getButtons() {
         var buttons = [];
-        if (setting("show-movement")) {
+        if (setting("show-movement") && game.user.isGM) {
             buttons.push([
                 {
                     id: 'movement-free',
                     title: 'MonksTokenBar.FreeMovement',
                     icon: 'fa-running',
+                    condition: () => game.user.isGM && setting("show-movement"),
                     click: (game.user.isGM ?
                         (event) => {
                             event.preventDefault();
@@ -108,6 +109,7 @@ export class BaseRolls {
                     id: 'movement-none',
                     title: 'MonksTokenBar.NoMovement',
                     icon: 'fa-street-view',
+                    condition: () => game.user.isGM && setting("show-movement"),
                     click: (game.user.isGM ?
                         (event) => {
                             event.preventDefault();
@@ -118,6 +120,8 @@ export class BaseRolls {
                     id: 'movement-combat',
                     title: 'MonksTokenBar.CombatTurn',
                     icon: 'fa-fist-raised',
+                    condition: () => game.user.isGM && setting("show-movement"),
+                    enabled: () => game.user.isGM && game.combat?.started,
                     click: (game.user.isGM ? (event) => {
                         event.preventDefault();
                         MonksTokenBar.changeGlobalMovement('combat');
@@ -125,31 +129,33 @@ export class BaseRolls {
                 }
             ]);
         }
-        if (game.user.isGM && MonksTokenBar.system._supportedSystem) {
+        if (MonksTokenBar.system._supportedSystem && (game.user.isGM || setting("allow-player"))) {
             buttons.push([
                 {
                     id: 'request-roll',
                     title: 'MonksTokenBar.RequestRoll',
                     icon: 'fa-tools',
-                    click: (event) => {
+                    condition: () => game.user.isGM || setting("allow-player"),
+                    click: async (event) => {
                         event.preventDefault();
-                        this.savingthrow = new SavingThrowApp().render(true);
+                        this.savingthrow = await new SavingThrowApp().render(true);
                     }
                 },
                 {
                     id: 'contested-roll',
                     title: 'MonksTokenBar.ContestedRoll',
                     icon: 'fa-people-arrows',
-                    click: (event) => {
+                    condition: () => game.user.isGM || setting("allow-player"),
+                    click: async (event) => {
                         event.preventDefault();
-                        this.contestedroll = new ContestedRollApp().render(true);
+                        this.contestedroll = await new ContestedRollApp().render(true);
                     }
                 },
                 {
                     id: 'assign-xp',
                     title: 'MonksTokenBar.AssignXP',
                     icon: 'fa-book-medical',
-                    hidden: !(game.user.isGM && MonksTokenBar.system.showXP),
+                    condition: () => game.user.isGM && MonksTokenBar.system.showXP,
                     click: (event) => {
                         event.preventDefault();
                         new AssignXPApp().render(true);

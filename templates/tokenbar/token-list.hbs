@@ -1,0 +1,33 @@
+<nav id="token-action-bar" class="flexrow{{#if collapsed}} collapsed{{/if}}">
+    <ol class="flexrow token-list">
+        {{#each entries}}
+        <li class="token flexcol {{this.cssClass}}" {{#if this.token}} data-token-id="{{this.token.id}}" {{/if}} {{#if this.actor}} data-actor-id="{{this.actor.id}}" {{/if}} movement="{{this.movement}}" data-action="tokenClick" data-tooltip="{{this.name}}">
+            <div class="token-stats flexcol">
+                {{#each this.stats}}
+                <div class="token-stat flexrow" data-stat="{{@key}}" style="{{#if this.hidden}}visibility:hidden;{{/if}}{{#if this.color}}color:{{this.color}}{{/if}}">{{#if this.icon}}<i class="fas {{this.icon}}"></i><span>{{/if}}{{this.value}}</span></div>
+                {{/each}}
+            </div>
+            <div class="token-content">
+                <div class="movement-icon" movement="{{this.movement}}"><i class="fas"></i></div>
+                <div class="inspiration-icon" inspiration="{{#if this.inspiration}}true{{/if}}" title="{{localize 'MonksTokenBar.Inspiration'}}"><i class="fas fa-crown"></i></div>
+                <div class="panning-icon" no-panning="{{#if this.nopanning}}true{{/if}}"><i class="fas fa-user-slash"></i></div>
+                {{#if this.thumb}}
+                <img class="token-icon" src="{{this.thumb}}" style="--scaleX: {{this.texture.scaleX}}; --scaleY: {{this.texture.scaleY}}; --mask: {{this.texture.mask}};" />
+                {{/if}}
+                {{#if this.resource1.value}}
+                <div class="resource" resource="1">
+                    <div class="bar" style="width:{{this.resource1.valuePct}}%;background-color:{{this.resource1.color}}"></div>
+                    <div class="temp-outer"><div class="temp" style="width:{{this.resource1.tempPct}}%;"></div></div>
+                </div>
+                {{/if}}
+                {{#if this.resource2.value}}
+                <div class="resource" resource="2">
+                    <div class="bar" style="width:{{this.resource2.valuePct}}%;background-color:{{this.resource2.color}}"></div>
+                    <div class="temp-outer"><div class="temp" style="width:{{this.resource2.tempPct}}%;"></div></div>
+                </div>
+                {{/if}}
+            </div>
+        </li>
+        {{/each}}
+    </ol>
+</nav>

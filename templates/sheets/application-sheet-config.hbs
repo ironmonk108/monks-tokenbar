@@ -1,0 +1,12 @@
+<section>
+
+    {{!-- Defaults --}}
+    <fieldset>
+        <legend>{{ localize "SHEETS.Defaults" }}</legend>
+
+        {{!-- Theme --}}
+        {{#with defaults.theme}}
+        {{ formField field name=name value=value localize=true blank="Default" disabled=disabled }}
+        {{/with}}
+    </fieldset>
+</section>
