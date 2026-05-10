@@ -94,8 +94,9 @@
 	"MonksTokenBar.show-resource-bars.hint": "Pokaż paski zasobów tokenów",
 	"MonksTokenBar.token-pictures.name": "Obrazy tokenów",
 	"MonksTokenBar.token-pictures.hint": "Wybierz użycie obrazu tokena lub portretu aktorów na pasku tokenów.",
-	"MonksTokenBar.token-pictures.token": "Obraz tokena",
-	"MonksTokenBar.token-pictures.actor": "Portret aktora",
+	"MonksTokenBar.token-pictures.token": "Obraz tokenu, a następnie portret aktora",
+	"MonksTokenBar.token-pictures.actor": "Tylko portret aktora",
+	"MonksTokenBar.token-pictures.tokenonly": "Tylko obraz tokenu",
 	"MonksTokenBar.allow-player.name": "Zezwól graczowi na użycie",
 	"MonksTokenBar.allow-player.hint": "Zezwól graczowi na korzystanie z paska narzędzi, ograniczonego do postaci, które posiada.",
 	"MonksTokenBar.disable-tokenbar.name": "Wyłącz Tokenbar",
@@ -184,6 +185,8 @@
 	"MonksTokenBar.show-movement.hint": "Wyświetlanie przycisków ruchu na pasku tokenów",
 	"MonksTokenBar.free-vehicle-combat.name": "Ruch pojazdu",
 	"MonksTokenBar.free-vehicle-combat.hint": "Zezwalaj na ruch pojazdów w walce",
+	"MonksTokenBar.allow-fade.name": "Zezwól na zanikanie",
+	"MonksTokenBar.allow-fade.hint": "Zezwól paskowi tokenów na używanie efektu zanikania interfejsu użytkownika",
 
 	"MonksTokenBar.orientation.vertical": "Pionowy",
 	"MonksTokenBar.orientation.horizontal": "Poziomy",
@@ -274,7 +277,8 @@
 
 	"MonksTokenBar.THEME": {
 		"savingthrow": "Rzut obronny",
-		"assignxp": "Przydziel PD"
+		"assignxp": "Przydziel PD",
+		"lootables": "Zdobycze"
 	},
 
 	"MonksTokenBar.ASSIGNXP.TABS": {
