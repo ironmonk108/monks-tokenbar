@@ -7,7 +7,7 @@ export class BaseRolls {
     constructor() {
         this._config = CONFIG[game.system.id.toUpperCase()];
         this._requestoptions = [{
-            id: "dice", text: "Dice", cssclass: "dice-group", groups: { "1d2": "1d2", "1d4": "1d4", "1d6": "1d6", "1d8": "1d8", "1d10": "1d10", "1d12": "1d12", "1d20": "1d20", "1d100": "1d100" }
+            id: "dice", text: i18n("MonksTokenBar.Dice"), cssclass: "dice-group", groups: { "1d2": "1d2", "1d4": "1d4", "1d6": "1d6", "1d8": "1d8", "1d10": "1d10", "1d12": "1d12", "1d20": "1d20", "1d100": "1d100" }
         }];
     }
 

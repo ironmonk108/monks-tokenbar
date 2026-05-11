@@ -30,6 +30,7 @@
 	"MonksTokenBar.Attribute": "Attribute",
 	"MonksTokenBar.Ability": "Ability",
 	"MonksTokenBar.AbilityCheck": "Ability Check",
+	"MonksTokenBar.Dice": "Dice",
 	"MonksTokenBar.SavingThrow": "Saving Throw",
 	"MonksTokenBar.Skill": "Skill",
 	"MonksTokenBar.Characteristics": "Characteristics",
