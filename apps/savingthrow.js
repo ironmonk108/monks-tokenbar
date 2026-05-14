@@ -464,7 +464,7 @@ export class SavingThrowApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
             //chatData.flags["monks-tokenbar"] = {"testmsg":"testing"};
             foundry.utils.setProperty(chatData, "flags.monks-tokenbar", requestdata);
-            msg = await ChatMessage.create(chatData, {});
+            msg = await foundry.documents.ChatMessage.implementation.create(chatData, {});
             msg.mtb_callback = this.opts.callback;
             if (setting('request-roll-sound-file') != '' && rollmode != 'selfroll' && roll !== true)
                 MonksTokenBar.playSound(setting('request-roll-sound-file'), whisper);
@@ -672,7 +672,7 @@ export class SavingThrow {
                 }
             } else {
                 let finishroll;
-                if (roll instanceof ChatMessage) {
+                if (roll instanceof foundry.documents.ChatMessage) {
                     let msg = roll;
                     roll = msg.roll || msg.rolls[0];
                     if (roll instanceof Array)
@@ -682,7 +682,7 @@ export class SavingThrow {
                         roll = Roll.fromJSON(roll);
                 }
 
-                let canSee = (rollmode == 'roll' ? null : ChatMessage.getWhisperRecipients("GM").map(w => { return w.id }));
+                let canSee = (rollmode == 'roll' ? null : foundry.documents.ChatMessage.implementation.getWhisperRecipients("GM").map(w => { return w.id }));
                 let cantSee = [];
                 let owners = actor.ownership.default == CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER ?
                     game.users.filter(u => !u.isGM).map(u => u.id) :
@@ -1172,7 +1172,7 @@ export class SavingThrow {
         const rollmode = message.getFlag("monks-tokenbar", "rollmode");
 
         if (game.dice3d != undefined && newRoll instanceof Roll && newRoll.ignoreDice !== true && MonksTokenBar.system.showRoll && !game.settings.get("core", "noCanvas") && game.system.id != "dnd5e") {
-            let canSee = (rollmode == 'roll' ? null : ChatMessage.getWhisperRecipients("GM").map(w => { return w.id }));
+            let canSee = (rollmode == 'roll' ? null : foundry.documents.ChatMessage.implementation.getWhisperRecipients("GM").map(w => { return w.id }));
             let cantSee = [];
             let owners = actor.ownership.default == CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER ?
                 game.users.filter(u => !u.isGM).map(u => u.id) :

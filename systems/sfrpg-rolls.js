@@ -87,7 +87,7 @@ export class SFRPGRolls extends BaseRolls {
 			const rollContext = new SFRPGRollContext(actor, data);
 			actor.setupRollContexts(rollContext);
 
-			let speaker = ChatMessage.getSpeaker({ actor: actor });
+			let speaker = foundry.documents.ChatMessage.implementation.getSpeaker({ actor: actor });
 			speaker.monkstokenbar = 'delete';
 
 			return game.sfrpg.dice.d20Roll({
@@ -151,10 +151,10 @@ export class SFRPGRolls extends BaseRolls {
 		});
 
 		if (setting("send-levelup-whisper") && actor.system.details.xp.value >= actor.system.details.xp.max) {
-			ChatMessage.create({
+			foundry.documents.ChatMessage.implementation.create({
 				user: game.user.id,
 				content: i18n("MonksTokenBar.Levelup"),
-				whisper: ChatMessage.getWhisperRecipients(actor.name)
+				whisper: foundry.documents.ChatMessage.implementation.getWhisperRecipients(actor.name)
 			}).then(() => { });
 		}
 	}

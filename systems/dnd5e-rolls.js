@@ -170,7 +170,7 @@ export class DnD5eRolls extends BaseRolls {
         let sysRequest = request.key;
         let config = { event: e };
         let dialogConfig = { configure: !fastForward };
-        const speaker = ChatMessage.getSpeaker({ actor });
+        const speaker = foundry.documents.ChatMessage.implementation.getSpeaker({ actor });
         let messageConfig = { create: false, data: { speaker } }
         if (request.type == 'ability') {
             rollfn = actor.rollAbilityCheck;
@@ -228,10 +228,10 @@ export class DnD5eRolls extends BaseRolls {
         });
 
         if (setting("send-levelup-whisper") && actor.system.details.xp.value >= actor.system.details.xp.max) {
-            ChatMessage.create({
+            foundry.documents.ChatMessage.implementation.create({
                 user: game.user.id,
                 content: i18n("MonksTokenBar.Levelup"),
-                whisper: ChatMessage.getWhisperRecipients(actor.name)
+                whisper: foundry.documents.ChatMessage.implementation.getWhisperRecipients(actor.name)
             }).then(() => { });
         }
     }

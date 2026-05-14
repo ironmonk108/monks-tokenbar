@@ -153,6 +153,8 @@ export class TokenBar extends HandlebarsApplicationMixin(ApplicationV2) {
         `;
         this.window.icon.insertAdjacentHTML("afterend", minimizeBtn);
 
+        $(frame).toggleClass("collapsed", this._collapsed);
+
         return frame;
     }
 
@@ -541,7 +543,7 @@ export class TokenBar extends HandlebarsApplicationMixin(ApplicationV2) {
         let entryImage = null;
         if (usePicture == "tokenonly") {
             entryImage = entry.token?.texture.src || entry.actor?.prototypeToken?.texture.src;
-        } else if (usePicture == "actoronly") {
+        } else if (usePicture == "actor") {
             entryImage = entry.actor?.img;
         } else {
             entryImage = entry.token?.texture.src || entry.actor?.img;
@@ -652,7 +654,7 @@ export class TokenBar extends HandlebarsApplicationMixin(ApplicationV2) {
             {
                 name: "MonksTokenBar.PrivateMessage",
                 icon: '<i class="fas fa-microphone"></i>',
-                condition: li => {
+                visible: li => {
                     let id = li.dataset.tokenId || li.dataset.actorId;
                     const entry = this.entries.find(t => t.token?.id === id || t.actor?.id === id);
                     if (!game.user.isGM && entry.actor?.isOwner)
@@ -684,7 +686,7 @@ export class TokenBar extends HandlebarsApplicationMixin(ApplicationV2) {
             {
                 name: "MonksTokenBar.ExcludeFromTokenBar",
                 icon: '<i class="fas fa-ban"></i>',
-                condition: li => {
+                visible: li => {
                     let id = li.dataset.tokenId;
                     if (!id) return false;
 
@@ -711,7 +713,7 @@ export class TokenBar extends HandlebarsApplicationMixin(ApplicationV2) {
             {
                 name: "MonksTokenBar.EditCharacter",
                 icon: '<i class="fas fa-edit"></i>',
-                condition: li => {
+                visible: li => {
                     const entry = this.entries.find(t => t.actor?.id === li.dataset.actorId);
                     if (game.user.isGM && entry?.actor)
                         return true;
@@ -727,7 +729,7 @@ export class TokenBar extends HandlebarsApplicationMixin(ApplicationV2) {
             {
                 name: "MonksTokenBar.EditToken",
                 icon: '<i class="fas fa-edit"></i>',
-                condition: li => {
+                visible: li => {
                     let id = li.dataset.tokenId;
                     if (!id) return false;
 
@@ -746,7 +748,7 @@ export class TokenBar extends HandlebarsApplicationMixin(ApplicationV2) {
             {
                 name: "MonksTokenBar.EditStats",
                 icon: '<i class="fas fa-list-ul"></i>',
-                condition: li => {
+                visible: li => {
                     let id = li.dataset.tokenId || li.dataset.actorId;
                     const entry = this.entries.find(t => t.token?.id === id || t.actor?.id === id);
                     return (game.user.isGM && entry);
@@ -761,7 +763,7 @@ export class TokenBar extends HandlebarsApplicationMixin(ApplicationV2) {
             {
                 name: "MonksTokenBar.AddHeroPoint",
                 icon: '<i class="fas fa-circle-h"></i>',
-                condition: li => {
+                visible: li => {
                     if (game.system.id != "pf2e")
                         return false;
 
@@ -776,14 +778,14 @@ export class TokenBar extends HandlebarsApplicationMixin(ApplicationV2) {
                     if (entry) {
                         let heroPoints = Math.min((foundry.utils.getProperty(entry.actor, 'system.resources.heroPoints.value') ?? 0) + 1, 3);
                         Actor.updateDocuments([{ _id: entry.actor.id, 'system.resources.heroPoints.value': heroPoints }]);
-                        ChatMessage.create({ content: `${entry.actor.name} gained a Hero Point!` });
+                        foundry.documents.ChatMessage.implementation.create({ content: `${entry.actor.name} gained a Hero Point!` });
                     }
                 }
             },
             {
                 name: "MonksTokenBar.AddInspiration",
                 icon: '<i class="fas fa-crown"></i>',
-                condition: li => {
+                visible: li => {
                     if (game.system.id != "dnd5e")
                         return false;
 
@@ -797,14 +799,14 @@ export class TokenBar extends HandlebarsApplicationMixin(ApplicationV2) {
                     const entry = this.entries.find(t => t.token?.id === id || t.actor?.id === id);
                     if (entry) {
                         Actor.updateDocuments([{ _id: entry.actor.id, 'system.attributes.inspiration': true }]);
-                        ChatMessage.create({ content: `${entry.actor.name} gained Inspiration!` });
+                        foundry.documents.ChatMessage.implementation.create({ content: `${entry.actor.name} gained Inspiration!` });
                     }
                 }
             },
             {
                 name: "MonksTokenBar.DisablePanning",
                 icon: '<i class="fas fa-user-slash no-panning"></i>',
-                condition: li => {
+                visible: li => {
                     if (game.settings.get("monks-tokenbar", "show-disable-panning-option")) {
                         let id = li.dataset.tokenId;
                         if (!id) return false;
@@ -829,7 +831,7 @@ export class TokenBar extends HandlebarsApplicationMixin(ApplicationV2) {
             {
                 name: "MonksTokenBar.TargetToken",
                 icon: '<i class="fas fa-bullseye"></i>',
-                condition: li => {
+                visible: li => {
                     let id = li.dataset.tokenId;
                     if (!id) return false;
 
@@ -851,7 +853,7 @@ export class TokenBar extends HandlebarsApplicationMixin(ApplicationV2) {
             {
                 name: "MonksTokenBar.FreeMovement",
                 icon: '<i class="fas fa-running" data-movement="free"></i>',
-                condition: li => {
+                visible: li => {
                     let id = li.dataset.tokenId;
                     if (!id) return false;
 
@@ -871,7 +873,7 @@ export class TokenBar extends HandlebarsApplicationMixin(ApplicationV2) {
             {
                 name: "MonksTokenBar.NoMovement",
                 icon: '<i class="fas fa-street-view" data-movement="none"></i>',
-                condition: li => {
+                visible: li => {
                     let id = li.dataset.tokenId;
                     if (!id) return false;
 
@@ -891,7 +893,7 @@ export class TokenBar extends HandlebarsApplicationMixin(ApplicationV2) {
             {
                 name: "MonksTokenBar.CombatTurn",
                 icon: '<i class="fas fa-fist-raised" data-movement="combat"></i>',
-                condition: li => {
+                visible: li => {
                     let id = li.dataset.tokenId;
                     if (!id) return false;
 
@@ -1042,6 +1044,8 @@ export class TokenBar extends HandlebarsApplicationMixin(ApplicationV2) {
 
     static _onCollapseToggle(event, target) {
         $(this.element).toggleClass("collapsed");
+        this._collapsed = $(this.element).hasClass("collapsed");
+        game.settings.set('monks-tokenbar', 'tokenbar-collapsed', this._collapsed);
     }
 
     /*

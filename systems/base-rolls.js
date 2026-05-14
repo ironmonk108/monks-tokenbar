@@ -98,7 +98,7 @@ export class BaseRolls {
                     id: 'movement-free',
                     title: 'MonksTokenBar.FreeMovement',
                     icon: 'fa-running',
-                    condition: () => game.user.isGM && setting("show-movement"),
+                    visible: () => game.user.isGM && setting("show-movement"),
                     click: (game.user.isGM ?
                         (event) => {
                             event.preventDefault();
@@ -109,7 +109,7 @@ export class BaseRolls {
                     id: 'movement-none',
                     title: 'MonksTokenBar.NoMovement',
                     icon: 'fa-street-view',
-                    condition: () => game.user.isGM && setting("show-movement"),
+                    visible: () => game.user.isGM && setting("show-movement"),
                     click: (game.user.isGM ?
                         (event) => {
                             event.preventDefault();
@@ -120,7 +120,7 @@ export class BaseRolls {
                     id: 'movement-combat',
                     title: 'MonksTokenBar.CombatTurn',
                     icon: 'fa-fist-raised',
-                    condition: () => game.user.isGM && setting("show-movement"),
+                    visible: () => game.user.isGM && setting("show-movement"),
                     enabled: () => game.user.isGM && game.combat?.started,
                     click: (game.user.isGM ? (event) => {
                         event.preventDefault();
@@ -135,7 +135,7 @@ export class BaseRolls {
                     id: 'request-roll',
                     title: 'MonksTokenBar.RequestRoll',
                     icon: 'fa-tools',
-                    condition: () => game.user.isGM || setting("allow-player"),
+                    visible: () => game.user.isGM || setting("allow-player"),
                     click: async (event) => {
                         event.preventDefault();
                         this.savingthrow = await new SavingThrowApp().render(true);
@@ -145,7 +145,7 @@ export class BaseRolls {
                     id: 'contested-roll',
                     title: 'MonksTokenBar.ContestedRoll',
                     icon: 'fa-people-arrows',
-                    condition: () => game.user.isGM || setting("allow-player"),
+                    visible: () => game.user.isGM || setting("allow-player"),
                     click: async (event) => {
                         event.preventDefault();
                         this.contestedroll = await new ContestedRollApp().render(true);
@@ -155,7 +155,7 @@ export class BaseRolls {
                     id: 'assign-xp',
                     title: 'MonksTokenBar.AssignXP',
                     icon: 'fa-book-medical',
-                    condition: () => game.user.isGM && MonksTokenBar.system.showXP,
+                    visible: () => game.user.isGM && MonksTokenBar.system.showXP,
                     click: (event) => {
                         event.preventDefault();
                         new AssignXPApp().render(true);

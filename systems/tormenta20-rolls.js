@@ -84,10 +84,10 @@ export class Tormenta20Rolls extends BaseRolls {
         });
 
         if (setting("send-levelup-whisper") && actor.system.attributes.nivel.xp.value >= actor.system.attributes.nivel.xp.proximo) {
-            ChatMessage.create({
+            foundry.documents.ChatMessage.implementation.create({
                 user: game.user.id,
                 content: i18n("MonksTokenBar.Levelup"),
-                whisper: ChatMessage.getWhisperRecipients(actor.name)
+                whisper: foundry.documents.ChatMessage.implementation.getWhisperRecipients(actor.name)
             }).then(() => { });
         }
     }

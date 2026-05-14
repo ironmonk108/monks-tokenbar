@@ -441,9 +441,11 @@ body #tokenbar-window:first-child{
     top: 0px;
 }
 
+/*
 #tokenbar.vertical #token-action-bar .token-list .token .token-content .resource {
-    width: 48px;
+    width: 52px;
 }
+*/
 
 #tokenbar.vertical #token-action-bar .token-list .token .token-content .resource[resource="2"] {
     top: -2px;
@@ -1624,13 +1626,13 @@ body.system-dnd5e .monks-tokenbar.chat-card .dice-roll.expanded .dice-tooltip-co
 #assignexperience .tab.monsters ol,
 #assignexperience .tab.players header,
 #assignexperience .tab.players ol {
-    grid-template-columns: 16rem 4rem 2rem;
+    grid-template-columns: 73% 18% 9%;
 }
 
 #savingthrow .player-group header,
 #contestedroll .player-group header,
 #editstats .stats-section header {
-    grid-template-columns: 15rem 8rem;
+    grid-template-columns: 65% 35%;
     height: 28px;
     margin: 2px 0;
     padding: 0;
@@ -1649,16 +1651,16 @@ body.system-dnd5e .monks-tokenbar.chat-card .dice-roll.expanded .dice-tooltip-co
 }
 
 #savingthrow .player-group ol {
-    grid-template-columns: 21rem 1rem;
+    grid-template-columns: 95% 5%;
 }
 
 #contestedroll .player-group ol {
-    grid-template-columns: 16rem 8rem 1rem;
+    grid-template-columns: 60% 32% 4%;
 }
 
 #editstats .stats-section header,
 #editstats .stats-section ol {
-    grid-template-columns: 2rem 23rem 7rem 2rem;
+    grid-template-columns: 6% 68% 20% 6%;
 }
 
 #assignexperience .tab.monsters ol li,
@@ -1710,6 +1712,7 @@ body.system-dnd5e .monks-tokenbar.chat-card .dice-roll.expanded .dice-tooltip-co
     background-position: center;
     border-radius: 4px;
     border: 1px solid #808080;
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
 #assignexperience .tab.monsters header .xp,

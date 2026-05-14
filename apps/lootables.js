@@ -611,7 +611,7 @@ export class LootablesApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     async getEntityName(entity, collection) {
-        if (entity?.documentCollection == collection && collection != null) {
+        if ((entity?.collection == collection || entity?.parent?.collection == collection) && collection != null) {
             if (entity instanceof JournalEntryPage || entity instanceof Actor)
                 return "<i>Adding</i> to <b>" + entity.name + "</b>";
             else if (entity instanceof JournalEntry)
@@ -1021,6 +1021,8 @@ export class LootablesApp extends HandlebarsApplicationMixin(ApplicationV2) {
                     entity.update({ data: { currency: entityCurr } });
             } else if (lootSheet == 'monks-enhanced-journal') {
                 let entityItems = foundry.utils.duplicate(entity.getFlag('monks-enhanced-journal', 'items') || []);
+                if (!(entityItems instanceof Array))
+                    entityItems = [];
                 entityItems = entityItems.concat(items);
                 await entity.setFlag('monks-enhanced-journal', 'items', entityItems);
 

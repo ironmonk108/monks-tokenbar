@@ -89,10 +89,10 @@ export class D35eRolls extends BaseRolls {
         });
 
         if (setting("send-levelup-whisper") && actor.system.details.xp.value >= actor.system.details.xp.max) {
-            ChatMessage.create({
+            foundry.documents.ChatMessage.implementation.create({
                 user: game.user.id,
                 content: i18n("MonksTokenBar.Levelup"),
-                whisper: ChatMessage.getWhisperRecipients(actor.name)
+                whisper: foundry.documents.ChatMessage.implementation.getWhisperRecipients(actor.name)
             }).then(() => { });
         }
     }

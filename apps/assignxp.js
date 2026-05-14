@@ -253,7 +253,7 @@ export class AssignXPApp extends HandlebarsApplicationMixin(ApplicationV2) {
             {
                 name: "Add Selected Actors",
                 icon: '<i class="fas fa-plus"></i>',
-                condition: () => canvas.tokens.controlled.filter(t => t.actor != undefined && t.document.isLinked).length > 0,
+                visible: () => canvas.tokens.controlled.filter(t => t.actor != undefined && t.document.isLinked).length > 0,
                 callback: li => {
                     let tokens = canvas.tokens.controlled.filter(t => t.actor != undefined && t.document.isLinked);
                     if (tokens.length == 0)
@@ -302,7 +302,7 @@ export class AssignXPApp extends HandlebarsApplicationMixin(ApplicationV2) {
             {
                 name: "Use Initial Actors",
                 icon: '<i class="fas fa-person-walking-arrow-loop-left"></i>',
-                condition: () => this.initialActors && this.initialActors.length > 0,
+                visible: () => this.initialActors && this.initialActors.length > 0,
                 callback: li => {
                     this.actors = foundry.utils.duplicate(this.initialActors);
                     this.changeXP();
@@ -312,7 +312,7 @@ export class AssignXPApp extends HandlebarsApplicationMixin(ApplicationV2) {
             {
                 name: "Last Used Actors",
                 icon: '<i class="fas fa-bolt"></i>',
-                condition: () => !!AssignXP.lastTokens,
+                visible: () => !!AssignXP.lastTokens,
                 callback: li => {
                     if (AssignXP.lastTokens) {
                         this.actors = foundry.utils.duplicate(AssignXP.lastTokens);
@@ -360,7 +360,7 @@ export class AssignXPApp extends HandlebarsApplicationMixin(ApplicationV2) {
             };
 
             foundry.utils.setProperty(chatData, "flags.monks-tokenbar", requestdata);
-            msg = await ChatMessage.create(chatData, {});
+            msg = await foundry.documents.ChatMessage.implementation.create(chatData, {});
             this.close();
         } else
             ui.notifications.warn(i18n("MonksTokenBar.RequestNoneActorSelected"));

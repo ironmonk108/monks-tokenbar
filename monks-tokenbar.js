@@ -12,6 +12,7 @@ import { A5eRolls } from "./systems/a5e-rolls.js";
 import { DS4Rolls } from "./systems/ds4-rolls.js";
 import { DnD5eRolls } from "./systems/dnd5e-rolls.js";
 import { DnD4eRolls } from "./systems/dnd4e-rolls.js";
+import { DrawSteelRolls } from "./systems/draw-steel-rolls.js";
 import { D35eRolls } from "./systems/d35e-rolls.js";
 import { PF1Rolls } from "./systems/pf1-rolls.js";
 import { PF2eRolls } from "./systems/pf2e-rolls.js";
@@ -22,6 +23,7 @@ import { SwadeRolls } from "./systems/swade-rolls.js";
 import { SW5eRolls } from "./systems/sw5e-rolls.js";
 import { CoC7Rolls } from "./systems/coc7-rolls.js";
 import { T2K4ERolls } from "./systems/t2k4e-rolls.js";
+import { FBLRolls } from "./systems/fbl-rolls.js";
 
 
 export let debug = (...args) => {
@@ -48,7 +50,7 @@ export let patchFunc = (prop, func, type = "WRAPPER") => {
     }
     if (game.modules.get("lib-wrapper")?.active) {
         try {
-            libWrapper.register("monks-enhanced-journal", prop, func, type);
+            libWrapper.register("monks-tokenbar", prop, func, type);
         } catch (e) {
             nonLibWrapper();
         }
@@ -202,7 +204,7 @@ export class MonksTokenBar {
                 {
                     name: "PF2E.RerollMenu.HeroPoint",
                     icon: '<i class="fas fa-hospital-symbol"></i>',
-                    condition: canHeroPointReroll,
+                    visible: canHeroPointReroll,
                     callback: li => {
                         const message = game.messages.get(li.dataset.messageId, { strict: !0 });
                         let what = message.getFlag("monks-tokenbar", "what");
@@ -215,7 +217,7 @@ export class MonksTokenBar {
                 {
                     name: "Reroll and keep the new result",
                     icon: '<i class="fas fa-dice"></i>',
-                    condition: canReroll,
+                    visible: canReroll,
                     callback: li => {
                         const message = game.messages.get(li.dataset.messageId, { strict: !0 });
                         let what = message.getFlag("monks-tokenbar", "what");
@@ -228,7 +230,7 @@ export class MonksTokenBar {
                 {
                     name: "Reroll and keep the worst result",
                     icon: '<i class="fas fa-dice-one"></i>',
-                    condition: canReroll,
+                    visible: canReroll,
                     callback: li => {
                         const message = game.messages.get(li.dataset.messageId, { strict: !0 });
                         let what = message.getFlag("monks-tokenbar", "what");
@@ -241,7 +243,7 @@ export class MonksTokenBar {
                 {
                     name: "Reroll and keep the better result",
                     icon: '<i class="fas fa-dice-six"></i>',
-                    condition: canReroll,
+                    visible: canReroll,
                     callback: li => {
                         const message = game.messages.get(li.dataset.messageId, { strict: !0 });
                         let what = message.getFlag("monks-tokenbar", "what");
@@ -476,7 +478,7 @@ export class MonksTokenBar {
 
         game.settings.settings.get("monks-tokenbar.stats").default = MonksTokenBar.system.defaultStats;
 
-        tinyMCE?.PluginManager.add('dcconfig', dcconfiginit);
+        //tinyMCE?.PluginManager.add('dcconfig', dcconfiginit);
 
         MonksTokenBar.setTokenSize();
 
@@ -1045,7 +1047,7 @@ export class MonksTokenBar {
                 entity = "";
             }
 
-            if (entity?.documentCollection == collection && collection != null) {
+            if ((entity?.collection == collection || entity?.parent?.collection == collection) && collection != null) {
                 if (entity instanceof JournalEntryPage || entity instanceof Actor)
                     return "<i>Adding</i> to <b>" + entity.name + "</b>";
                 else if (entity instanceof JournalEntry)
@@ -1258,6 +1260,10 @@ Hooks.on("setup", () => {
             MonksTokenBar.system = new CoC7Rolls(); break;
         case 't2k4e':
             MonksTokenBar.system = new T2K4ERolls(); break;
+        case 'draw-steel':
+            MonksTokenBar.system = new DrawSteelRolls(); break;
+        case 'forbidden-lands':
+            MonksTokenBar.system = new FBLRolls(); break; 
     }
 
     MonksTokenBar.system.constructor.activateHooks();
@@ -1570,8 +1576,8 @@ Hooks.on("setupTileActions", (app) => {
             const { action, tile, tokens, userid, value, method, change, event } = args;
             let entities = await game.MonksActiveTiles.getEntities(args);
 
-            //if (entities.length == 0)
-            //    return;
+            if (entities.length == 0)
+                return;
 
             entities = entities.map(e => e.object);
 
@@ -1719,8 +1725,8 @@ Hooks.on("setupTileActions", (app) => {
             let entities1 = await game.MonksActiveTiles.getEntities(args, "tokens", action.data.entity1);
             let entities2 = await game.MonksActiveTiles.getEntities(args, "tokens", action.data.entity2);
 
-            //if (entities1.length == 0 || entities2.length == 0)
-            //    return;
+            if (entities1.length == 0 || entities2.length == 0)
+                return;
 
             let entity1 = entities1[0].object;
             let entity2 = entities2[0].object;

@@ -85,10 +85,10 @@ export class DS4Rolls extends BaseRolls {
 
         // level list is zero-based
         if (setting("send-levelup-whisper") && actor.system.progression.experiencePoints >= levels[MonksTokenBar.system.getLevel(actor)]) {
-            ChatMessage.create({
+            foundry.documents.ChatMessage.implementation.create({
                 user: game.user.id,
                 content: i18n("MonksTokenBar.Levelup"),
-                whisper: ChatMessage.getWhisperRecipients(actor.name)
+                whisper: foundry.documents.ChatMessage.implementation.getWhisperRecipients(actor.name)
             }).then(() => { });
         }
     }
