@@ -1,3 +1,15 @@
+## Version 14.01
+
+v14 compatibility
+
+Fixing issue where previous collapsed state wasn't being remembered
+
+Fixed issue with actor only image display
+
+Fixed issue with larger font sizes
+
+Fixed issue with pf2e lore skill
+
 ## Version 13.02
 
 Fixed issue with Contested Roll always rolling Strength
